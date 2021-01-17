@@ -31,7 +31,7 @@ steps:
   id: function-deploy
   args: ['functions', 'deploy', 'goWithTheDataFlow', '--stage-bucket=gs://batch-pipeline', '--trigger-bucket=gs://batch-pipeline']
   dir: 'cloud-function'
-  waitFor: ['npm-install-test']
+  #waitFor: ['npm-install-test']
 
 ## 5. Trigger the pipeline for demo purposes
 #- name: gcr.io/cloud-builders/gsutil
