@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "tf-state-gcp-batch-ingestion"
+    bucket = "dkt-us-data-lake-a1xq-tf-state"
     prefix = "terraform/state"
   }
 }
