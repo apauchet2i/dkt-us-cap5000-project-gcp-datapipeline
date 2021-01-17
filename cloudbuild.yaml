@@ -5,7 +5,7 @@ steps:
 
 # 2a. Set up GCS & BQ etc. using public terraform Docker image
 - name: hashicorp/terraform
-  args: ['init -reconfigure']
+  args: ['init']
   dir: 'terraform'
 
 # 2b. Create the GCS bucket using Terraform
