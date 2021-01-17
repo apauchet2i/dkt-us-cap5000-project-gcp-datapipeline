@@ -22,14 +22,14 @@ dependencies {
 }
 
 run {
-    args = ["--project=grey-sort-challenge",
+    args = ["--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
             "--maxNumWorkers=5",
             "--numWorkers=1",
-            "--zone=australia-southeast1-a",
-            "--stagingLocation=gs://batch-pipeline/jars",
-            "--tempLocation=gs://batch-pipeline/tmp",
-            "--templateLocation=gs://batch-pipeline/template/pipeline"
+            "--zone=us-central1",
+            "--stagingLocation=gs://dkt-us-ldp-baptiste-test/staging",
+            "--tempLocation=gs://dkt-us-ldp-baptiste-test/temp",
+            "--templateLocation=gs://dkt-us-ldp-baptiste-test/template/pipeline"
     ]
 }
 
