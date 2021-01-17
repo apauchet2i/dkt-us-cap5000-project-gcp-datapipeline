@@ -1,7 +1,5 @@
 terraform {
   backend "gcs" {
-    project = "dkt-us-data-lake-a1xq"
-    region  = "us-central1"
     bucket = "tf-state-gcp-batch-ingestion-cap5000"
     prefix = "terraform/state"
   }
