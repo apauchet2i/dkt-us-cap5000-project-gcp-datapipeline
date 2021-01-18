@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "dkt-us-data-lake-a1xq-tf-state"
+    bucket = "dkt-us-data-lake-a1xq-tfstate"
     prefix = "terraform/state"
   }
 }
