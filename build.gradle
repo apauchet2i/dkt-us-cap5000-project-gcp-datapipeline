@@ -27,9 +27,9 @@ run {
             "--maxNumWorkers=5",
             "--numWorkers=1",
             "--zone=us-central1",
-            "--stagingLocation=gs://dkt-us-ldp-baptiste-test/staging",
-            "--tempLocation=gs://dkt-us-ldp-baptiste-test/temp",
-            "--templateLocation=gs://dkt-us-ldp-baptiste-test/template/pipeline"
+            "--stagingLocation=gs://deploy-project-cap5000/staging",
+            "--tempLocation=gs://deploy-project-cap5000/temp",
+            "--templateLocation=gs://deploy-project-cap5000/template/pipeline"
     ]
 }
 
