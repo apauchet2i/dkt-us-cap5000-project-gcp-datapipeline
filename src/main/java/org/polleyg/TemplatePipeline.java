@@ -15,6 +15,7 @@ import org.apache.beam.sdk.transforms.ParDo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
@@ -51,7 +52,6 @@ public class TemplatePipeline {
         return new TableSchema().setFields(fields);
     }
 
-
     public interface TemplateOptions extends DataflowPipelineOptions {
         @Description("GCS path of the file to read from")
         ValueProvider<String> getInputFile();
@@ -60,13 +60,14 @@ public class TemplatePipeline {
     }
 
     public static class WikiParDo extends DoFn<String, TableRow> {
-        public static final String HEADER = "number,customer_id,street1,street2,zip_code,city,country,created_at, updated_at";
+        public static final String HEADER = "number,customer_id,street1,street2,zip_code,city,country,created_at,updated_at";
 
         @ProcessElement
         public void processElement(ProcessContext c) throws Exception {
             if (c.element().equalsIgnoreCase(HEADER)) return;
             String[] split = c.element().split(",");
-            if (split.length > 7) return;
+            System.out.println(split);
+            if (split.length > 9) return;
             TableRow row = new TableRow();
             for (int i = 0; i < split.length; i++) {
                 TableFieldSchema col = getTableSchemaOrder().getFields().get(i);
