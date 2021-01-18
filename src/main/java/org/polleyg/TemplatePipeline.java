@@ -30,24 +30,27 @@ public class TemplatePipeline {
         pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
                 .apply("TRANSFORM", ParDo.of(new WikiParDo()))
                 .apply("WRITE", BigQueryIO.writeTableRows()
-                        .to(String.format("%s:dotc_2018.wiki_demo", options.getProject()))
+                        .to(String.format("%s:dkt_us_test_cap5000.orders", options.getProject()))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withSchema(getTableSchema()));
+                        .withSchema(getTableSchemaOrder()));
         pipeline.run();
     }
 
-    private static TableSchema getTableSchema() {
+    private static TableSchema getTableSchemaOrder() {
         List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("year").setType("INTEGER"));
-        fields.add(new TableFieldSchema().setName("month").setType("INTEGER"));
-        fields.add(new TableFieldSchema().setName("day").setType("INTEGER"));
-        fields.add(new TableFieldSchema().setName("wikimedia_project").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("language").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("title").setType("STRING"));
-        fields.add(new TableFieldSchema().setName("views").setType("INTEGER"));
+        fields.add(new TableFieldSchema().setName("number").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("customer_id").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("street1").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("street2").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("zip_code").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("city").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("country").setType("STRING"));
+        fields.add(new TableFieldSchema().setName("created_at").setType("DATETIME"));
+        fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME"));
         return new TableSchema().setFields(fields);
     }
+
 
     public interface TemplateOptions extends DataflowPipelineOptions {
         @Description("GCS path of the file to read from")
@@ -66,7 +69,7 @@ public class TemplatePipeline {
             if (split.length > 7) return;
             TableRow row = new TableRow();
             for (int i = 0; i < split.length; i++) {
-                TableFieldSchema col = getTableSchema().getFields().get(i);
+                TableFieldSchema col = getTableSchemaOrder().getFields().get(i);
                 row.set(col.getName(), split[i]);
             }
             c.output(row);
