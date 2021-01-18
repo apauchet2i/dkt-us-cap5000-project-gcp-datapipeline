@@ -66,7 +66,6 @@ public class TemplatePipeline {
         public void processElement(ProcessContext c) throws Exception {
             if (c.element().equalsIgnoreCase(HEADER)) return;
             String[] split = c.element().split(",");
-            System.out.println(split);
             if (split.length > 9) return;
             TableRow row = new TableRow();
             for (int i = 0; i < split.length; i++) {
