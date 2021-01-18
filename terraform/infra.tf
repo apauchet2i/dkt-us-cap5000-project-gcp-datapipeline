@@ -10,7 +10,7 @@ provider "google" {
   region = "us-central1"
 }
 
-resource "google_storage_bucket" "funky-bucket" {
+resource "google_storage_bucket" "deploy-project-cap5000" {
   name = "dkt-us-ldp-baptiste-test"
   storage_class = "REGIONAL"
   location  = "us-central1"
