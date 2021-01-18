@@ -60,7 +60,7 @@ public class TemplatePipeline {
     }
 
     public static class WikiParDo extends DoFn<String, TableRow> {
-        public static final String HEADER = "year,month,day,wikimedia_project,language,title,views";
+        public static final String HEADER = "number,customer_id,street1,street2,zip_code,city,country,created_at, updated_at";
 
         @ProcessElement
         public void processElement(ProcessContext c) throws Exception {
