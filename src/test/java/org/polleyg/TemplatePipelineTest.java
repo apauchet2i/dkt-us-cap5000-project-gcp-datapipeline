@@ -36,7 +36,7 @@ public class TemplatePipelineTest {
 
         List<String> input = new ArrayList<>();
 
-        input.add("2018,8,13,Wikinews,English,Spanish football: Sevilla signs Aleix Vidal from FC Barcelona,12331, 12331? 12331");
+        input.add("2018,8,13,Wikinews,English,Spanish football: Sevilla signs Aleix Vidal from FC Barcelona,12331,12331,12331");
 
         List<TableRow> output = fnTester.processBundle(input);
 
