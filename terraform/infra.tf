@@ -11,7 +11,7 @@ provider "google" {
 }
 
 resource "google_storage_bucket" "deploy-project-cap5000" {
-  name = "dkt-us-ldp-baptiste-test"
+  name = "deploy-project-cap5000"
   storage_class = "REGIONAL"
   location  = "us-central1"
 }
