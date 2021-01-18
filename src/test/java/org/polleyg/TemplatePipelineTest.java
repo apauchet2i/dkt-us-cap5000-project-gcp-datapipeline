@@ -72,7 +72,7 @@ public class TemplatePipelineTest {
 
         List<String> input = new ArrayList<>();
 
-        input.add("number,customer_id,street1,street2,zip_code,city,country, created_at, updated_at");
+        input.add("number,customer_id,street1,street2,zip_code,city,country,created_at,updated_at");
 
         List<TableRow> output = fnTester.processBundle(input);
 
