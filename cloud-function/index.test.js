@@ -7,7 +7,7 @@ describe('The cloud function', function () {
 
       const event = {
         data: {
-          bucket: "gs://batch-pipeline",
+          bucket: "gs://dkt-us-ldp-baptiste-test",
           name: "upload/filename"
         },
         context: {
