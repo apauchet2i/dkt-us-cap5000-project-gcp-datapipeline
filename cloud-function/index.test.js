@@ -1,5 +1,5 @@
 const expect = require('chai').expect
-const index = require('./index')
+const index = require('./index');
 const google = require('googleapis');
 
 describe('The cloud function', function () {
