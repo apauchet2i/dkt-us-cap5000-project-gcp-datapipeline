@@ -29,7 +29,7 @@ steps:
 # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
   id: function-deploy
-  args: ['functions', 'deploy', 'goWithTheDataFlow', '--stage-bucket=gs://dkt-us-ldp-baptiste-test', '--trigger-bucket=gs://dkt-us-ldp-baptiste-test', '--runtime=nodejs12', '--service-account=vaultvault-terrafor-1608724182@dkt-us-data-lake-a1xq.iam.gserviceaccount.com']
+  args: ['functions', 'deploy', 'goWithTheDataFlow', '--stage-bucket=gs://dkt-us-ldp-baptiste-test', '--trigger-bucket=gs://dkt-us-ldp-baptiste-test', '--runtime=nodejs12', '--service-account=dkt-us-data-lake-a1xq@appspot.gserviceaccount.com']
   dir: 'cloud-function'
   waitFor: ['npm-install-test']
 
