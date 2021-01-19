@@ -23,7 +23,6 @@ dependencies {
 
 run {
     args = ["--project=dkt-us-data-lake-a1xq",
-            "--serviceAccount=tony.leon@decathlon.com",
             "--runner=DataflowRunner",
             "--maxNumWorkers=5",
             "--numWorkers=1",

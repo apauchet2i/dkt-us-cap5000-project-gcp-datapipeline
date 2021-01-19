@@ -3,6 +3,8 @@ package org.polleyg;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
+import org.apache.beam.vendor.gson.v2.com.google.gson.JsonParser;
+import org.json.*;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
@@ -12,7 +14,9 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.json.JSONObject;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +33,27 @@ public class TemplatePipeline {
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
         pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
+//                .apply(
+//                        "JSONtoData",                     // the transform name
+//                        ParDo.of(new DoFn<String, String>() {    // a DoFn as an anonymous inner class instance
+//                            @ProcessElement
+//                            public void processElement(@Element String word, OutputReceiver<String> out) {
+//                                JsonParser parser = new JsonParser();
+//                                Object obj = null;
+//                                try {
+//                                    obj = parser.parse(strLine);
+//                                } catch (ParseException e) {
+//                                    e.printStackTrace();
+//                                }
+//                                JSONObject jsonObject =  (JSONObject) obj;
+//
+//                                String sender = (String) jsonObject.get("sender");
+//                                String messageType = (String) jsonObject.get("messageType");
+//                                String timestamp = (String) jsonObject.get("timestamp");
+//
+//                                out.output(sender+","+timestamp+","+messageType);
+//                            }
+//                        }))
                 .apply("TRANSFORM", ParDo.of(new WikiParDo()))
                 .apply("WRITE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:dkt_us_test_cap5000.orders", options.getProject()))
