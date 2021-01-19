@@ -35,7 +35,7 @@ steps:
 
 # 5. Trigger the pipeline for demo purposes
 - name: gcr.io/cloud-builders/gsutil
-  args: ['cp', 'gs://dkt-us-ldp-baptiste-test/webhookNewStore-13_01_2021_07_14_17.json', 'gs://dkt-us-ldp-baptiste-test/upload/file.csv']
+  args: ['cp', 'gs://dkt-us-ldp-baptiste-test/webhookNewStore-13_01_2021_07_14_17.json', 'gs://dkt-us-ldp-baptiste-test/upload/webhookNewStore-13_01_2021_07_14_17.json']
 
 ## 6. Copy tarball/archive to GCS for more shenanigans later
 #artifacts:
