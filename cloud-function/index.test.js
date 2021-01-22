@@ -8,7 +8,7 @@ describe('The cloud function', function () {
       const event = {
         data: {
           bucket: "gs://dkt-us-ldp-baptiste-test",
-          name: "upload/filename"
+          file: "upload/filename"
         },
         context: {
           eventType: "google.storage.object.finalize"
@@ -18,7 +18,7 @@ describe('The cloud function', function () {
     const getApplicationDefaultStub = this.sandbox.stub(google.auth, 'getApplicationDefault');
 
     // Call tested function and verify its behavior
-    const result = index.goWithTheDataFlow(event, () => {
+    const result = index.goWithTheDataFlow(event.data.file, () => {
       t.end();
     });
 
