@@ -20,11 +20,11 @@ steps:
   waitFor: ['terraform-apply']
 
 # 4a. Install npm & run tests
-- name: gcr.io/cloud-builders/npm
-  id: npm-install-test
-  args: ['install-test']
-  dir: 'cloud-function'
-  waitFor: ['terraform-apply']
+#- name: gcr.io/cloud-builders/npm
+#  id: npm-install-test
+#  args: ['install-test']
+#  dir: 'cloud-function'
+#  waitFor: ['terraform-apply']
 
 # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
