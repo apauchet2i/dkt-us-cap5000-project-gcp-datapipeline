@@ -31,7 +31,7 @@ steps:
   id: function-deploy
   args: ['functions', 'deploy', 'goWithTheDataFlow', '--trigger-event=google.storage.object.finalize', '--stage-bucket=gs://dkt-us-ldp-baptiste-test', '--trigger-resource=gs://dkt-us-ldp-baptiste-test', '--runtime=nodejs12']
   dir: 'cloud-function'
-  waitFor: ['npm-install-test']
+  #waitFor: ['npm-install-test']
 
 ## 5. Trigger the pipeline for demo purposes
 #- name: gcr.io/cloud-builders/gsutil
