@@ -49,12 +49,12 @@ exports.goWithTheDataFlow = function(file, context) {
             console.error("Problem running dataflow template, error was: ", err);
           }
           console.log("Dataflow template response: ", response);
-          callback();
+          //callback();
         });
       });
     });
   } else {
     console.log("Nothing to do here, ignoring.");
-    callback();
+    //callback();
   }
 };
