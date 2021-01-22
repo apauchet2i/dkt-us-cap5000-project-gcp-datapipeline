@@ -16,7 +16,7 @@ exports.goWithTheDataFlow = function(file, context) {
   console.log("File is: ", fileName);
   console.log("State is: ", eventType);
 
-  if (eventType === 'google.storage.object.finalize' && file.indexOf('upload/') !== -1) {
+  if (eventType === 'google.storage.object.finalize' && fileName.indexOf('upload/') !== -1) {
     google.auth.getApplicationDefault(function (err, authClient) {
       if (err) {
         throw err;
@@ -39,7 +39,7 @@ exports.goWithTheDataFlow = function(file, context) {
           projectId: projectId,
           resource: {
             parameters: {
-              inputFile: `gs://${file.bucket}/${file.name}`
+              inputFile: `gs://${file.bucket}/${fileName}`
             },
             jobName: 'called-from-a-cloud-function-batch-pipeline-' + new Date().getTime(),
             gcsPath: 'gs://deploy-project-cap5000/template/pipeline'
