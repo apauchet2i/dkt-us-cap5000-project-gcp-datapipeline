@@ -26,7 +26,6 @@ dependencies {
 run {
     args = ["--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
-            "--serviceAccount=146505698738@cloudbuild.gserviceaccount.com",
             "--maxNumWorkers=5",
             "--numWorkers=1",
             "--region=us-central1",
