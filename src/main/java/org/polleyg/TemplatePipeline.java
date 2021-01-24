@@ -39,9 +39,9 @@ public class TemplatePipeline {
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
         pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
-        //pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-05_01_2021_10_11_36.json"))
+                //pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-05_01_2021_10_11_36.json"))
 
-                .apply("TRANSFORM", ParDo.of(new WikiParDo()))
+                .apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
                 .apply("WRITE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:dkt_us_test_cap5000.orders", options.getProject()))
                         .withCreateDisposition(CREATE_IF_NEEDED)
@@ -80,7 +80,8 @@ public class TemplatePipeline {
 
         void setInputFile(ValueProvider<String> value);
     }
-    public static class WikiParDo extends DoFn<String, TableRow> {
+
+    public static class TransformJsonParDo extends DoFn<String, TableRow> {
 
         @ProcessElement
         public void processElement(ProcessContext c) throws Exception {
@@ -103,13 +104,13 @@ public class TemplatePipeline {
             map.put("number", jsonObject.get("name"));
             map.put("customer_id", String.valueOf(customer.get("id")));
             map.put("street1", shippingAddress.get("address1"));
-            if(shippingAddress.get("address2") != null) {
+            if (shippingAddress.get("address2") != null) {
                 map.put("street2", shippingAddress.get("address2"));
             }
             map.put("zip_code", shippingAddress.get("zip"));
             map.put("city", shippingAddress.get("city"));
             map.put("country", shippingAddress.get("country"));
-            map.put("created_at", ((String) jsonObject.get("created_at")).substring(0,((String) jsonObject.get("created_at")).length()-6));
+            map.put("created_at", ((String) jsonObject.get("created_at")).substring(0, ((String) jsonObject.get("created_at")).length() - 6));
             map.put("updated_at", timeStampNow);
             JSONObject jsonToBigQuery = new JSONObject(map);
             System.out.println(jsonToBigQuery);
@@ -117,6 +118,23 @@ public class TemplatePipeline {
             System.out.println(tableRow);
             c.output(tableRow);
 
+        }
+    }
+
+    public static class WikiParDo extends DoFn<String, TableRow> {
+        public static final String HEADER = "year,month,day,wikimedia_project,language,title,views";
+
+        @ProcessElement
+        public void processElement(ProcessContext c) throws Exception {
+            if (c.element().equalsIgnoreCase(HEADER)) return;
+            String[] split = c.element().split(",");
+            if (split.length > 7) return;
+            TableRow row = new TableRow();
+            for (int i = 0; i < split.length; i++) {
+                TableFieldSchema col = getTableSchemaOrder().getFields().get(i);
+                row.set(col.getName(), split[i]);
+            }
+            c.output(row);
         }
     }
 }
