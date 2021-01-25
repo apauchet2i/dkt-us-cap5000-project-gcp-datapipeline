@@ -51,7 +51,6 @@ exports.goWithTheDataFlow = function(file, context) {
               zone:'us-central1',
               maxWorkers: 5,
               numWorkers:1,
-              workerRegion:'us-central1',
               workerZone:'us-central1-b',
               tempLocation:'gs://deploy-project-cap5000/temp'
             },
