@@ -3,26 +3,20 @@ package org.polleyg;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
-import org.apache.beam.sdk.coders.Coder;
-import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.apache.beam.sdk.io.gcp.bigquery.TableRowJsonCoder;
-
-import java.io.ByteArrayInputStream;
-
-import org.json.simple.parser.JSONParser;
-import org.json.simple.JSONObject;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
+import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.vendor.calcite.v1_20_0.com.google.common.collect.ArrayListMultimap;
+import org.apache.beam.vendor.calcite.v1_20_0.com.google.common.collect.Multimap;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -34,7 +28,7 @@ import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 /**
  * Do some randomness
  */
-public class TemplatePipeline {
+public class TemplatePipelineStatusOrder {
     public static void main(String[] args) {
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
@@ -47,20 +41,16 @@ public class TemplatePipeline {
                         .to(String.format("%s:dkt_us_test_cap5000.orders", options.getProject()))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withSchema(getTableSchemaOrder()));
+                        .withSchema(getTableSchemaOrderStatus()));
         pipeline.run();
     }
 
-    private static TableSchema getTableSchemaOrder() {
+    private static TableSchema getTableSchemaOrderStatus() {
         List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("number").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("customer_id").setType("INTEGER").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("street1").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("street2").setType("STRING").setMode("NULLABLE"));
-        fields.add(new TableFieldSchema().setName("zip_code").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("city").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("country").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("created_at").setType("DATETIME").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("order_number").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("source").setType("INTEGER").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("type").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("status").setType("STRING").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
         return new TableSchema().setFields(fields);
     }
@@ -72,10 +62,11 @@ public class TemplatePipeline {
         void setInputFile(ValueProvider<String> value);
     }
 
-    public static class TransformJsonParDo extends DoFn<String, TableRow> {
+    public static class TransformJsonParDo extends DoFn<String, List<TableRow>> {
 
         @ProcessElement
-        public void processElement(ProcessContext c) throws Exception {
+        public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
+            List listTableRow = new ArrayList();
             JSONParser parser = new JSONParser();
             System.out.println(c.element().getClass());
             System.out.println(c.element());
@@ -86,28 +77,30 @@ public class TemplatePipeline {
             LocalDateTime now = LocalDateTime.now();
             String timeStampNow = dtf.format(now);
 
-            JSONObject customer = (JSONObject) jsonObject.get("customer");
-            JSONObject shippingAddress = (JSONObject) jsonObject.get("shipping_address");
-            System.out.println(customer.get("id"));
-            System.out.println(customer.get("id").getClass());
-
-            Map<String, Object> map = new HashMap<>();
-            map.put("number", jsonObject.get("name"));
-            map.put("customer_id", String.valueOf(customer.get("id")));
-            map.put("street1", shippingAddress.get("address1"));
-            if (shippingAddress.get("address2") != null) {
-                map.put("street2", shippingAddress.get("address2"));
+            Multimap<Object, Object> multimapStatusOrder = ArrayListMultimap.create();
+            multimapStatusOrder.put("order_number", jsonObject.get("name"));
+            multimapStatusOrder.put("source", "shopify");
+            multimapStatusOrder.put("type", "order");
+            if(jsonObject.get("cancelled_at") != null) {
+                multimapStatusOrder.put("status", "cancelled");
             }
-            map.put("zip_code", shippingAddress.get("zip"));
-            map.put("city", shippingAddress.get("city"));
-            map.put("country", shippingAddress.get("country"));
-            map.put("created_at", ((String) jsonObject.get("created_at")).substring(0, ((String) jsonObject.get("created_at")).length() - 6));
-            map.put("updated_at", timeStampNow);
+            else if(jsonObject.get("closed_at") != null){
+                multimapStatusOrder.put("status", "closed");
+            }
+            else{
+                multimapStatusOrder.put("status", "opened");
+            }
+            multimapStatusOrder.put("updated_at", timeStampNow);
+
+            listTableRow.add(multimapStatusOrder);
+
+
             JSONObject jsonToBigQuery = new JSONObject(map);
             System.out.println(jsonToBigQuery);
             TableRow tableRow = convertJsonToTableRow(String.valueOf(jsonToBigQuery));
             System.out.println(tableRow);
-            c.output(tableRow);
+            c.output(listTableRow);
+
         }
     }
 
@@ -121,7 +114,7 @@ public class TemplatePipeline {
             if (split.length > 7) return;
             TableRow row = new TableRow();
             for (int i = 0; i < split.length; i++) {
-                TableFieldSchema col = getTableSchemaOrder().getFields().get(i);
+                TableFieldSchema col = getTableSchemaOrderStatus().getFields().get(i);
                 row.set(col.getName(), split[i]);
             }
             c.output(row);
