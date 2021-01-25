@@ -27,10 +27,6 @@ exports.goWithTheDataFlow = function(file, context) {
         authClient = authClient.createScoped([
           'https://www.googleapis.com/auth/cloud-platform',
           'https://www.googleapis.com/auth/userinfo.email',
-          'https://www.googleapis.com/auth/bigquery',
-          'https://www.googleapis.com/auth/datastore',
-          'https://www.googleapis.com/auth/compute',
-           'https://www.googleapis.com/auth/compute.readonly'
         ]);
       }
       google.auth.getDefaultProjectId(function(err, projectId) {
@@ -47,11 +43,6 @@ exports.goWithTheDataFlow = function(file, context) {
             },
             environment: {
               serviceAccountEmail: 'vaultvault-terrafor-1610967381@dkt-us-data-lake-a1xq.iam.gserviceaccount.com',
-              subnetwork:'https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-              maxWorkers: 5,
-              numWorkers:1,
-              workerZone:'us-central1-b',
-              tempLocation:'gs://deploy-project-cap5000/temp'
             },
             jobName: 'called-from-a-cloud-function-batch-pipeline-' + new Date().getTime(),
             gcsPath: 'gs://deploy-project-cap5000/template/pipeline'
