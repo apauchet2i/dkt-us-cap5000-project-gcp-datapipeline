@@ -3,7 +3,7 @@ apply plugin: "java"
 apply plugin: "idea"
 
 wrapper {
-    gradleVersion = '4.4'
+    gradleVersion = '6.8.1'
 }
 
 repositories {
