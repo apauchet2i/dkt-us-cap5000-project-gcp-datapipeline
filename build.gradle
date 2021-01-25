@@ -33,6 +33,7 @@ run {
             "--tempLocation=gs://deploy-project-cap5000/temp",
             "--templateLocation=gs://deploy-project-cap5000/template/pipeline",
             '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
+            "--serviceAccount=data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com"
     ]
 }
 
