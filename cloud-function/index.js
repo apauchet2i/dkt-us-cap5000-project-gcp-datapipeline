@@ -27,6 +27,8 @@ exports.goWithTheDataFlow = function(file, context) {
         authClient = authClient.createScoped([
           'https://www.googleapis.com/auth/cloud-platform',
           'https://www.googleapis.com/auth/userinfo.email',
+          'https://www.googleapis.com/auth/compute',
+          'https://www.googleapis.com/auth/compute.readonly'
         ]);
       }
       google.auth.getDefaultProjectId(function(err, projectId) {
@@ -42,7 +44,7 @@ exports.goWithTheDataFlow = function(file, context) {
               inputFile: `gs://${file.bucket}/${fileName}`
             },
             environment: {
-              serviceAccountEmail: 'vaultvault-terrafor-1610967381@dkt-us-data-lake-a1xq.iam.gserviceaccount.com',
+              serviceAccountEmail: 'data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com',
             },
             jobName: 'called-from-a-cloud-function-batch-pipeline-' + new Date().getTime(),
             gcsPath: 'gs://deploy-project-cap5000/template/pipeline'
