@@ -48,7 +48,6 @@ exports.goWithTheDataFlow = function(file, context) {
             environment: {
               serviceAccountEmail: 'cloudbuild@dkt-us-data-lake-a1xq.iam.gserviceaccount.com',
               subnetwork:'https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-              zone:'us-central1',
               maxWorkers: 5,
               numWorkers:1,
               workerZone:'us-central1-b',
