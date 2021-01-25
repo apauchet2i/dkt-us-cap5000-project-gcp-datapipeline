@@ -37,7 +37,7 @@ exports.goWithTheDataFlow = function(file, context) {
           throw err;
         }
         const dataflow = google.dataflow({ version: 'v1b3', auth: authClient });
-        dataflow.projects.templates.create({
+        dataflow.projects.templates.launch({
           projectId: 'dkt-us-data-lake-a1xq',
           resource: {
             parameters: {
@@ -45,6 +45,8 @@ exports.goWithTheDataFlow = function(file, context) {
             },
             environment: {
               serviceAccountEmail: 'data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com',
+              tempLocation: "gs://deploy-project-cap5000/temp",
+              zone: "us-central1-f"
             },
             jobName: 'called-from-a-cloud-function-batch-pipeline-' + new Date().getTime(),
             gcsPath: 'gs://deploy-project-cap5000/template/pipeline'
