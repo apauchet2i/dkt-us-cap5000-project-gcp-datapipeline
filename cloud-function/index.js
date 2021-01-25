@@ -46,7 +46,7 @@ exports.goWithTheDataFlow = function(file, context) {
               inputFile: `gs://${file.bucket}/${fileName}`
             },
             environment: {
-              serviceAccountEmail: 'data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com',
+              serviceAccountEmail: 'vaultvault-terrafor-1610967381@dkt-us-data-lake-a1xq.iam.gserviceaccount.com',
               subnetwork:'https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
               maxWorkers: 5,
               numWorkers:1,
