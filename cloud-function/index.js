@@ -43,7 +43,7 @@ exports.goWithTheDataFlow = function(file, context) {
               inputFile: `gs://${file.bucket}/${fileName}`
             },
             environment: {
-              serviceAccountEmail: 'data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com',
+              serviceAccountEmail: 'vaultvault-terrafor-1610967381@dkt-us-data-lake-a1xq.iam.gserviceaccount.com',
               tempLocation: "gs://deploy-project-cap5000/temp",
               zone: "us-central1-f"
             },
