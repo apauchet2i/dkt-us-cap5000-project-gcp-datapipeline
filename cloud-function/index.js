@@ -1,8 +1,6 @@
-var {google} = require('googleapis');
-exports.goWithTheDataFlow = (event, callback) => {
-
-  const file = event.data;
-  const context = event.context;
+//gcloud --project=grey-sort-challenge functions deploy goWithTheDataFlow --stage-bucket gs://batch-pipeline --trigger-bucket gs://batch-pipeline
+const google = require('googleapis');
+exports.goWithTheDataFlow = function(file, context) {
 
   console.log(`  Event: ${context.eventId}`);
   console.log(`  Event Type: ${context.eventType}`);
@@ -11,7 +9,6 @@ exports.goWithTheDataFlow = (event, callback) => {
   console.log(`  Metageneration: ${file.metageneration}`);
   console.log(`  Created: ${file.timeCreated}`);
   console.log(`  Updated: ${file.updated}`);
-
 
   const fileName = file.name;
   const eventType = context.eventType;
@@ -58,12 +55,12 @@ exports.goWithTheDataFlow = (event, callback) => {
             console.error("Problem running dataflow template, error was: ", err);
           }
           console.log("Dataflow template response: ", response);
-          callback();
+          //callback();
         });
       });
     });
   } else {
     console.log("Nothing to do here, ignoring.");
-    callback();
+    //callback();
   }
 };
