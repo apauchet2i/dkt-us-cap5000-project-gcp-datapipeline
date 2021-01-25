@@ -1,6 +1,9 @@
 //gcloud --project=grey-sort-challenge functions deploy goWithTheDataFlow --stage-bucket gs://batch-pipeline --trigger-bucket gs://batch-pipeline
 const google = require('googleapis');
-exports.goWithTheDataFlow = function(file, context) {
+exports.goWithTheDataFlow = function(event, callback) {
+
+  const file = event.data;
+  const context = event.context;
 
   console.log(`  Event: ${context.eventId}`);
   console.log(`  Event Type: ${context.eventType}`);
@@ -9,6 +12,7 @@ exports.goWithTheDataFlow = function(file, context) {
   console.log(`  Metageneration: ${file.metageneration}`);
   console.log(`  Created: ${file.timeCreated}`);
   console.log(`  Updated: ${file.updated}`);
+
 
   const fileName = file.name;
   const eventType = context.eventType;
@@ -27,8 +31,7 @@ exports.goWithTheDataFlow = function(file, context) {
         authClient = authClient.createScoped([
           'https://www.googleapis.com/auth/cloud-platform',
           'https://www.googleapis.com/auth/userinfo.email',
-          'https://www.googleapis.com/auth/compute',
-          'https://www.googleapis.com/auth/compute.readonly'
+          'https://www.googleapis.com/auth/compute'
         ]);
       }
       google.auth.getDefaultProjectId(function(err, projectId) {
@@ -37,8 +40,8 @@ exports.goWithTheDataFlow = function(file, context) {
           throw err;
         }
         const dataflow = google.dataflow({ version: 'v1b3', auth: authClient });
-        dataflow.projects.templates.launch({
-          projectId: 'dkt-us-data-lake-a1xq',
+        dataflow.projects.templates.create({
+          projectId: projectId,
           resource: {
             parameters: {
               inputFile: `gs://${file.bucket}/${fileName}`
@@ -56,12 +59,12 @@ exports.goWithTheDataFlow = function(file, context) {
             console.error("Problem running dataflow template, error was: ", err);
           }
           console.log("Dataflow template response: ", response);
-          //callback();
+          callback();
         });
       });
     });
   } else {
     console.log("Nothing to do here, ignoring.");
-    //callback();
+    callback();
   }
 };
