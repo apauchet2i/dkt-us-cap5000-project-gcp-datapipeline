@@ -43,6 +43,7 @@ exports.goWithTheDataFlow = function(file, context) {
               inputFile: `gs://${file.bucket}/${fileName}`
             },
             environment: {
+              serviceAccountEmail: 'tony.leon@decathlon.com',
               tempLocation: "gs://deploy-project-cap5000/temp",
               zone: "us-central1-f"
             },
