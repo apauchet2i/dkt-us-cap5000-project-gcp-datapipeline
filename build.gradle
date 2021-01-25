@@ -32,7 +32,8 @@ run {
             "--stagingLocation=gs://deploy-project-cap5000/staging",
             "--tempLocation=gs://deploy-project-cap5000/temp",
             "--templateLocation=gs://deploy-project-cap5000/template/pipeline",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network'
+            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
+            '--serviceAccount=cloudbuild@dkt-us-data-lake-a1xq.iam.gserviceaccount.com'
     ]
 }
 
