@@ -60,7 +60,7 @@ dependencies {
 //}
 
 task runSimple (type: JavaExec, dependsOn: classes) {
-    main = 'org.polleyg.TemplatePipeline.main'
+    main = 'org.polleyg.TemplatePipeline'
     classpath = sourceSets.main.runtimeClasspath
 }
 
