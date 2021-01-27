@@ -14,10 +14,23 @@ steps:
   args: ['apply', '-auto-approve']
   dir: 'terraform'
 
-# 3. Build and run the Dataflow pipeline (staged template)
+  # 3. Build and run the Dataflow pipeline (staged template)
 - name: gcr.io/cloud-builders/gradle
-  args: ['build', 'runTemplatePipeline']
+  args: ['build', 'runTemplatePipeline' ]
   waitFor: ['terraform-apply']
+
+## 3. Build and run the Dataflow pipeline (staged template)
+#- name: gcr.io/cloud-builders/gradle
+#  args: ['build', 'runTemplatePipeline', '-Parg1 =dkt-us-data-lake-a1xq',
+#                                       '-Parg2 =DataflowRunner',
+#                                        '-Parg3 =5',
+#                                        '-Parg4=1',
+#                                        '-Parg5 =us-central1',
+#                                         '-Parg6 =stagingLocation=gs://deploy-project-cap5000/staging',
+#                                         '-Parg7 =gs://deploy-project-cap5000/temp',
+#                                         '-Parg8 =gs://deploy-project-cap5000/template/pipeline',
+#                                         '-Parg9=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network' ]
+#  waitFor: ['terraform-apply']
 
 # 4a. Install npm & run tests
 #- name: gcr.io/cloud-builders/npm

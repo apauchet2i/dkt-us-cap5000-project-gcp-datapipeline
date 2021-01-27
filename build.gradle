@@ -1,3 +1,4 @@
+
 apply plugin: "application"
 apply plugin: "java"
 apply plugin: "idea"
@@ -38,12 +39,17 @@ dependencies {
 //
 //mainClassName="org.polleyg.TemplatePipelineOrderItems"
 
-task(runTemplatePipeline, dependsOn: 'classes', type: JavaExec) {
+//task runTemplatePipeline(type: JavaExec) {
+//    main = "pkg.mainclass"
+//    classpath = sourceSets.main.runtimeClasspath
+//    args = ["project","runner", "maxNumWorkers","numWorkers","region","stagingLocation","tempLocation","templateLocation","subnetwork"]
+//}
+
+task runTemplatePipeline (type: JavaExec) {
     main = 'org.polleyg.TemplatePipelineOrderItems'
     classpath = sourceSets.main.runtimeClasspath
-
     args = ["--project=dkt-us-data-lake-a1xq",
-            "--runner=DirectwRunner",
+            "--runner=DataflowRunner",
             "--maxNumWorkers=5",
             "--numWorkers=1",
             "--region=us-central1",
