@@ -46,7 +46,7 @@ dependencies {
 //}
 
 task runTemplatePipeline (type: JavaExec) {
-    mainClassName = 'org.polleyg.TemplatePipelineOrderItems'
+    main = 'org.polleyg.TemplatePipeline.main'
     classpath = sourceSets.main.runtimeClasspath
     args = ["--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
