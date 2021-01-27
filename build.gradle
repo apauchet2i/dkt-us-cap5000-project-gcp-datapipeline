@@ -63,6 +63,5 @@ dependencies {
 task(runSimple, dependsOn: 'classes', type: JavaExec) {
     main = 'org.polleyg.TemplatePipeline.main'
     classpath = sourceSets.main.runtimeClasspath
-    args "project","runner", "maxNumWorkers","numWorkers","region","stagingLocation","tempLocation","templateLocation","subnetwork"
 }
 

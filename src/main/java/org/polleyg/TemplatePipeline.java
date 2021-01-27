@@ -3,12 +3,9 @@ package org.polleyg;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
-import org.apache.beam.sdk.coders.Coder;
+import org.apache.beam.runners.dataflow.DataflowRunner;
+import org.apache.beam.runners.direct.DirectRunner;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.apache.beam.sdk.io.gcp.bigquery.TableRowJsonCoder;
-
-import java.io.ByteArrayInputStream;
-
 import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
@@ -19,10 +16,6 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -31,13 +24,20 @@ import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposi
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
-/**
- * Do some randomness
- */
 public class TemplatePipeline {
     public static void main(String[] args) {
         PipelineOptionsFactory.register(TemplateOptions.class);
-        TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
+        TemplateOptions options = PipelineOptionsFactory.as(TemplateOptions.class);
+        options.setProject("dkt-us-data-lake-a1xq");
+        options.setMaxNumWorkers(5);
+        options.setNumWorkers(1);
+        options.setRunner(DataflowRunner.class);
+        options.setRegion("us-central1");
+        options.setStagingLocation("gs://deploy-project-cap5000/staging");
+        options.setTemplateLocation("gs://deploy-project-cap5000/template/pipeline");
+        options.setTempLocation("gs://deploy-project-cap5000/temp");
+        options.setSubnetwork("https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network");
+
         Pipeline pipeline = Pipeline.create(options);
         pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
                 //pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-05_01_2021_10_11_36.json"))
@@ -77,8 +77,6 @@ public class TemplatePipeline {
         @ProcessElement
         public void processElement(ProcessContext c) throws Exception {
             JSONParser parser = new JSONParser();
-            System.out.println(c.element().getClass());
-            System.out.println(c.element());
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
@@ -88,8 +86,6 @@ public class TemplatePipeline {
 
             JSONObject customer = (JSONObject) jsonObject.get("customer");
             JSONObject shippingAddress = (JSONObject) jsonObject.get("shipping_address");
-            System.out.println(customer.get("id"));
-            System.out.println(customer.get("id").getClass());
 
             Map<String, Object> map = new HashMap<>();
             map.put("number", jsonObject.get("name"));
@@ -104,9 +100,7 @@ public class TemplatePipeline {
             map.put("created_at", ((String) jsonObject.get("created_at")).substring(0, ((String) jsonObject.get("created_at")).length() - 6));
             map.put("updated_at", timeStampNow);
             JSONObject jsonToBigQuery = new JSONObject(map);
-            System.out.println(jsonToBigQuery);
             TableRow tableRow = convertJsonToTableRow(String.valueOf(jsonToBigQuery));
-            System.out.println(tableRow);
             c.output(tableRow);
         }
     }
