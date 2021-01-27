@@ -12,8 +12,7 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.vendor.calcite.v1_20_0.com.google.common.collect.ArrayListMultimap;
-import org.apache.beam.vendor.calcite.v1_20_0.com.google.common.collect.Multimap;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -28,17 +27,17 @@ import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 /**
  * Do some randomness
  */
-public class TemplatePipelineStatusOrder {
+public class TemplatePipelineShipmentTrackings {
     public static void main(String[] args) {
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
-        pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
-                //pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-05_01_2021_10_11_36.json"))
+        //pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
+                pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-25_11_2020_21_36_25.json"))
 
                 .apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
                 .apply("WRITE", BigQueryIO.writeTableRows()
-                        .to(String.format("%s:dkt_us_test_cap5000.orders", options.getProject()))
+                        .to(String.format("%s:dkt_us_test_cap5000.shipment_trackings", options.getProject()))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
                         .withSchema(getTableSchemaOrderStatus()));
@@ -47,11 +46,10 @@ public class TemplatePipelineStatusOrder {
 
     private static TableSchema getTableSchemaOrderStatus() {
         List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("order_number").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("source").setType("INTEGER").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("type").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("status").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("shipment_id").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("tracking_id").setType("STRING").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("tracking_link").setType("STRING").setMode("NULLABLE"));
         return new TableSchema().setFields(fields);
     }
 
@@ -62,45 +60,48 @@ public class TemplatePipelineStatusOrder {
         void setInputFile(ValueProvider<String> value);
     }
 
-    public static class TransformJsonParDo extends DoFn<String, List<TableRow>> {
+    public static class TransformJsonParDo extends DoFn<String, TableRow> {
 
         @ProcessElement
         public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
-            List listTableRow = new ArrayList();
+            List<TableRow> listTableRow = new ArrayList<>();
             JSONParser parser = new JSONParser();
             System.out.println(c.element().getClass());
             System.out.println(c.element());
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
+            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
+            Map<Object, Object> mapShipmentOrder = new HashMap<>();
+            mapShipmentOrder.put("source","shopify");
 
-            Multimap<Object, Object> multimapStatusOrder = ArrayListMultimap.create();
-            multimapStatusOrder.put("order_number", jsonObject.get("name"));
-            multimapStatusOrder.put("source", "shopify");
-            multimapStatusOrder.put("type", "order");
-            if(jsonObject.get("cancelled_at") != null) {
-                multimapStatusOrder.put("status", "cancelled");
+            for (Object o : fulfillmentArray) {
+                JSONObject fulfillment = (JSONObject) o;
+                mapShipmentOrder.put("shipment_id", fulfillment.get("name"));
+                JSONArray trackingNumbers = (JSONArray) fulfillment.get("tracking_numbers");
+                JSONArray trackingUrls = (JSONArray) fulfillment.get("tracking_urls");
+                if (fulfillment.get("tracking_numbers") != null && trackingNumbers.size() != 0 ) {
+                    System.out.println(fulfillment.get("tracking_numbers"));
+                    System.out.println((fulfillment.get("tracking_numbers")).getClass());
+                    mapShipmentOrder.put("tracking_id", trackingNumbers.get(0));
+                } else {
+                    mapShipmentOrder.put("tracking_id", "null");
+                }
+                if (fulfillment.get("tracking_urls") != null && trackingUrls.size()!= 0) {
+                    mapShipmentOrder.put("tracking_link", trackingUrls.get(0));
+                } else {
+                    mapShipmentOrder.put("tracking_link", "null");
+                }
             }
-            else if(jsonObject.get("closed_at") != null){
-                multimapStatusOrder.put("status", "closed");
+
+            JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
+            TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
+            listTableRow.add(tableRowStatusFulfillment);
+            System.out.println(listTableRow);
+
+            for (TableRow tableRow : listTableRow) {
+                c.output(tableRow);
             }
-            else{
-                multimapStatusOrder.put("status", "opened");
-            }
-            multimapStatusOrder.put("updated_at", timeStampNow);
-
-            listTableRow.add(multimapStatusOrder);
-
-
-            JSONObject jsonToBigQuery = new JSONObject(map);
-            System.out.println(jsonToBigQuery);
-            TableRow tableRow = convertJsonToTableRow(String.valueOf(jsonToBigQuery));
-            System.out.println(tableRow);
-            c.output(listTableRow);
-
         }
     }
 
