@@ -23,9 +23,27 @@ dependencies {
     compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
 }
 
-run {
+//run {
+//    args = ["--project=dkt-us-data-lake-a1xq",
+//            "--runner=DataflowRunner",
+//            "--maxNumWorkers=5",
+//            "--numWorkers=1",
+//            "--region=us-central1",
+//            "--stagingLocation=gs://deploy-project-cap5000/staging",
+//            "--tempLocation=gs://deploy-project-cap5000/temp",
+//            "--templateLocation=gs://deploy-project-cap5000/template/pipeline",
+//            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network'
+//    ]
+//}
+//
+//mainClassName="org.polleyg.TemplatePipelineOrderItems"
+
+task(runTemplatePipeline, dependsOn: 'classes', type: JavaExec) {
+    main = 'org.polleyg.TemplatePipelineOrderItems'
+    classpath = sourceSets.main.runtimeClasspath
+
     args = ["--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
+            "--runner=DirectwRunner",
             "--maxNumWorkers=5",
             "--numWorkers=1",
             "--region=us-central1",
@@ -36,4 +54,3 @@ run {
     ]
 }
 
-mainClassName="org.polleyg.TemplatePipeline"

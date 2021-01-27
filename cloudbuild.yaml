@@ -16,7 +16,7 @@ steps:
 
 # 3. Build and run the Dataflow pipeline (staged template)
 - name: gcr.io/cloud-builders/gradle
-  args: ['build', 'run']
+  args: ['build', 'runTemplatePipeline']
   waitFor: ['terraform-apply']
 
 # 4a. Install npm & run tests
