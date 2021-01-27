@@ -1,5 +1,4 @@
 
-apply plugin: "application"
 apply plugin: "java"
 apply plugin: "idea"
 
@@ -60,7 +59,7 @@ dependencies {
 //    ]
 //}
 
-task(runSimple, dependsOn: 'classes', type: JavaExec) {
+task runSimple (type: JavaExec, dependsOn: classes) {
     main = 'org.polleyg.TemplatePipeline.main'
     classpath = sourceSets.main.runtimeClasspath
 }
