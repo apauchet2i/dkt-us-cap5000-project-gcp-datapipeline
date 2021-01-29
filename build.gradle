@@ -27,7 +27,7 @@ dependencies {
 
 run {
     args = ["--project=dkt-us-data-lake-a1xq",
-            "--runner=DirectRunner",
+            "--runner=DataflowRunner",
             "--maxNumWorkers=5",
             "--numWorkers=1",
             "--region=us-central1",
