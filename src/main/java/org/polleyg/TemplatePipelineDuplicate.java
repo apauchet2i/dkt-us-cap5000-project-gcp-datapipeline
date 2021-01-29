@@ -3,19 +3,20 @@ package org.polleyg;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
-import org.apache.beam.runners.dataflow.DataflowRunner;
-import org.apache.beam.runners.direct.DirectRunner;
-import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.JSONObject;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.extensions.sql.SqlTransform;
 import org.apache.beam.sdk.io.TextIO;
+import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
+import org.apache.beam.sdk.transforms.Distinct;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -24,42 +25,45 @@ import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposi
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
-public class TemplatePipeline {
+public class TemplatePipelineDuplicate {
     public static void main(String[] args) {
         PipelineOptionsFactory.register(TemplateOptions.class);
-        TemplateOptions options = PipelineOptionsFactory.as(TemplateOptions.class);
-        options.setProject("dkt-us-data-lake-a1xq");
-        options.setMaxNumWorkers(5);
-        options.setNumWorkers(1);
-        options.setRunner(DataflowRunner.class);
-        options.setRegion("us-central1");
-        options.setStagingLocation("gs://deploy-project-cap5000/staging");
-        options.setTemplateLocation("gs://deploy-project-cap5000/template/pipeline");
-        options.setTempLocation("gs://deploy-project-cap5000/temp");
-        options.setSubnetwork("https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network");
-
+        TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
-        pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
-                //pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-05_01_2021_10_11_36.json"))
+        pipeline.apply("deduplicte ", SqlTransform.query("WITH cte AS (\n" +
+                "    SELECT \n" +
+                "        contact_id, \n" +
+                "        first_name, \n" +
+                "        last_name, \n" +
+                "        email, \n" +
+                "        ROW_NUMBER() OVER (\n" +
+                "            PARTITION BY \n" +
+                "                first_name, \n" +
+                "                last_name, \n" +
+                "                email\n" +
+                "            ORDER BY \n" +
+                "                first_name, \n" +
+                "                last_name, \n" +
+                "                email\n" +
+                "        ) row_num\n" +
+                "     FROM \n" +
+                "        sales.contacts\n" +
+                ")\n" +
+                "DELETE FROM cte\n" +
+                "WHERE row_num > 1;"));
 
-                .apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
-                .apply("WRITE", BigQueryIO.writeTableRows()
-                        .to(String.format("%s:dkt_us_test_cap5000.orders", options.getProject()))
-                        .withCreateDisposition(CREATE_IF_NEEDED)
-                        .withWriteDisposition(WRITE_APPEND)
-                        .withSchema(getTableSchemaOrder()));
         pipeline.run();
     }
 
     private static TableSchema getTableSchemaOrder() {
         List<TableFieldSchema> fields = new ArrayList<>();
         fields.add(new TableFieldSchema().setName("number").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("customer_id").setType("INTEGER").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("street1").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("customer_id").setType("INTEGER").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("street1").setType("STRING").setMode("NULLABLE"));
         fields.add(new TableFieldSchema().setName("street2").setType("STRING").setMode("NULLABLE"));
-        fields.add(new TableFieldSchema().setName("zip_code").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("city").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("country").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("zip_code").setType("STRING").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("city").setType("STRING").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("country").setType("STRING").setMode("NULLABLE"));
         fields.add(new TableFieldSchema().setName("created_at").setType("DATETIME").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
         return new TableSchema().setFields(fields);
