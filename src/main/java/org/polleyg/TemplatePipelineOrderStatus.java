@@ -25,9 +25,6 @@ import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposi
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
-/**
- * Do some randomness
- */
 public class TemplatePipelineOrderStatus {
     public static void main(String[] args) {
         PipelineOptionsFactory.register(TemplateOptions.class);

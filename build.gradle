@@ -116,7 +116,6 @@ task runTemplatePipelineOrderSources(type: JavaExec) {
 }
 
 task runTemplatePipelineOrderStatus(type: JavaExec) {
-    dependsOn''
     main = 'org.polleyg.TemplatePipelineOrderStatus'
     classpath = sourceSets.main.runtimeClasspath
     args "--project=dkt-us-data-lake-a1xq",
