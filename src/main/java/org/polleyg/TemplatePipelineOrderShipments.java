@@ -12,6 +12,7 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -26,28 +27,30 @@ import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 /**
  * Do some randomness
  */
-public class TemplatePipelineCustomer {
+public class TemplatePipelineOrderShipments {
     public static void main(String[] args) {
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
-        //pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
-                pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-25_11_2020_21_36_25.json"))
+        pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
+                //pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-25_11_2020_21_36_25.json"))
 
                 .apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
                 .apply("WRITE", BigQueryIO.writeTableRows()
-                        .to(String.format("%s:dkt_us_test_cap5000.customers", options.getProject()))
+                        .to(String.format("%s:dkt_us_test_cap5000.order_shipments", options.getProject()))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withSchema(getTableSchemaOrder()));
+                        .withSchema(getTableSchemaOrderStatus()));
         pipeline.run();
     }
 
-    private static TableSchema getTableSchemaOrder() {
+    private static TableSchema getTableSchemaOrderStatus() {
         List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("id").setType("INTEGER").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("lastname").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("firstname").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("id").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("order_number").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("status").setType("STRING").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
         return new TableSchema().setFields(fields);
     }
 
@@ -61,26 +64,39 @@ public class TemplatePipelineCustomer {
     public static class TransformJsonParDo extends DoFn<String, TableRow> {
 
         @ProcessElement
-        public void processElement(ProcessContext c) throws Exception {
+        public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
+            List<TableRow> listTableRow = new ArrayList<>();
             JSONParser parser = new JSONParser();
             System.out.println(c.element().getClass());
             System.out.println(c.element());
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            JSONObject customer = (JSONObject) jsonObject.get("customer");
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
+            LocalDateTime now = LocalDateTime.now();
+            String timeStampNow = dtf.format(now);
 
+            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
+            Map<Object, Object> mapShipmentOrder = new HashMap<>();
+            mapShipmentOrder.put("source","shopify");
+            mapShipmentOrder.put("order_number",jsonObject.get("name"));
+            mapShipmentOrder.put("updated_at", timeStampNow);
 
-            Map<String, Object> mapCustomer = new HashMap<>();
-            mapCustomer.put("id", String.valueOf(customer.get("id")));
-            mapCustomer.put("lastname", String.valueOf(customer.get("last_name")));
-            mapCustomer.put("firstname", String.valueOf(customer.get("first_name")));
+            for (Object o : fulfillmentArray) {
+                JSONObject fulfillment = (JSONObject) o;
+                mapShipmentOrder.put("id", fulfillment.get("name"));
+                mapShipmentOrder.put("status", fulfillment.get("shipment_status"));
 
-            JSONObject mapCustomerToBigQuery = new JSONObject(mapCustomer);
-            System.out.println(mapCustomerToBigQuery);
-            TableRow tableRow = convertJsonToTableRow(String.valueOf(mapCustomerToBigQuery));
-            System.out.println(tableRow);
-            c.output(tableRow);
+            }
+
+            JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
+            TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
+            listTableRow.add(tableRowStatusFulfillment);
+            System.out.println(listTableRow);
+
+            for (TableRow tableRow : listTableRow) {
+                c.output(tableRow);
+            }
         }
     }
 
@@ -94,7 +110,7 @@ public class TemplatePipelineCustomer {
             if (split.length > 7) return;
             TableRow row = new TableRow();
             for (int i = 0; i < split.length; i++) {
-                TableFieldSchema col = getTableSchemaOrder().getFields().get(i);
+                TableFieldSchema col = getTableSchemaOrderStatus().getFields().get(i);
                 row.set(col.getName(), split[i]);
             }
             c.output(row);

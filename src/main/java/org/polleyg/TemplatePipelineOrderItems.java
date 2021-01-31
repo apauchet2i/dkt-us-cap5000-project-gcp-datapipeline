@@ -24,16 +24,13 @@ import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposi
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
-/**
- * Do some randomness
- */
 public class TemplatePipelineOrderItems {
     public static void main(String[] args) {
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
-        //pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
-                pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-25_11_2020_21_36_25.json"))
+        pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
+                //pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-25_11_2020_21_36_25.json"))
 
                 .apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
                 .apply("WRITE", BigQueryIO.writeTableRows()

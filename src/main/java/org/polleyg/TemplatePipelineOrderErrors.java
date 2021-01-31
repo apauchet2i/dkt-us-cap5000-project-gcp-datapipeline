@@ -29,15 +29,6 @@ public class TemplatePipelineOrderErrors {
     public static void main(String[] args) {
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.as(TemplateOptions.class);
-        options.setProject("dkt-us-data-lake-a1xq");
-        options.setMaxNumWorkers(5);
-        options.setNumWorkers(1);
-        options.setRunner(DataflowRunner.class);
-        options.setRegion("us-central1");
-        options.setStagingLocation("gs://deploy-project-cap5000/staging");
-        options.setTemplateLocation("gs://deploy-project-cap5000/template/pipeline");
-        options.setTempLocation("gs://deploy-project-cap5000/temp");
-        options.setSubnetwork("https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network");
 
         Pipeline pipeline = Pipeline.create(options);
         pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
