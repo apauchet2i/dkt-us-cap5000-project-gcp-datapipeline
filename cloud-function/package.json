@@ -5,12 +5,13 @@
   "license": "MIT",
   "devDependencies": {},
   "dependencies": {
-    "googleapis": "^22.2.0",
+    "@google-cloud/bigquery": "^5.5.0",
     "chai": "3.5.0",
     "co-mocha": "1.2.2",
+    "googleapis": "^22.2.0",
+    "mocha": "5.2.0",
     "sinon": "1.17.4",
-    "sinon-chai": "2.8.0",
-    "mocha": "5.2.0"
+    "sinon-chai": "2.8.0"
   },
   "scripts": {
     "test": "npm run test-unit",
