@@ -50,7 +50,7 @@ public class TemplatePipelineOrders {
 
         Pipeline pipeline = Pipeline.create(options);
 
-        PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
+        PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from(options.getInputFile()));
         //PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-25_11_2020_21_36_25.json"));
         pcollection1.apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
                 .apply("WRITE", BigQueryIO.writeTableRows()
