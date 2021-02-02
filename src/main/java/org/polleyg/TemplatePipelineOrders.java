@@ -77,6 +77,14 @@ public class TemplatePipelineOrders {
         return new TableSchema().setFields(fields);
     }
 
+    private static TableSchema getTableSchemaCustomers() {
+        List<TableFieldSchema> fields = new ArrayList<>();
+        fields.add(new TableFieldSchema().setName("id").setType("INTEGER").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("lastname").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("firstname").setType("STRING").setMode("REQUIRED"));
+        return new TableSchema().setFields(fields);
+    }
+
     private static TableSchema getTableSchemaOrderStatus() {
         List<TableFieldSchema> fields = new ArrayList<>();
         fields.add(new TableFieldSchema().setName("id").setType("STRING").setMode("REQUIRED"));
@@ -87,11 +95,49 @@ public class TemplatePipelineOrders {
         return new TableSchema().setFields(fields);
     }
 
+    private static TableSchema getTableSchemaOrderItems() {
+        List<TableFieldSchema> fields = new ArrayList<>();
+        fields.add(new TableFieldSchema().setName("id").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("shipment_id").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("name").setType("STRING").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("price").setType("NUMERIC").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("quantity").setType("INTEGER").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
+        return new TableSchema().setFields(fields);
+    }
+
+    private static TableSchema getTableSchemaOrderShipments() {
+        List<TableFieldSchema> fields = new ArrayList<>();
+        fields.add(new TableFieldSchema().setName("id").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("order_number").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("status").setType("STRING").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
+        return new TableSchema().setFields(fields);
+    }
+
+    private static TableSchema getTableSchemaOrderSources() {
+        List<TableFieldSchema> fields = new ArrayList<>();
+        fields.add(new TableFieldSchema().setName("order_number").setType("INTEGER").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
+        return new TableSchema().setFields(fields);
+    }
+
+    private static TableSchema getTableSchemaShipmenTrackings() {
+        List<TableFieldSchema> fields = new ArrayList<>();
+        fields.add(new TableFieldSchema().setName("shipment_id").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("tracking_id").setType("STRING").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("tracking_link").setType("STRING").setMode("NULLABLE"));
+        return new TableSchema().setFields(fields);
+    }
+
     public interface TemplateOptions extends DataflowPipelineOptions {
         @Description("GCS path of the file to read from")
-        ValueProvider.RuntimeValueProvider<String> getInputFile();
+        ValueProvider<String> getInputFile();
 
-        void setInputFile(ValueProvider.RuntimeValueProvider<String> value);
+        void setInputFile(ValueProvider<String> value);
     }
 
     public static class TransformJsonParDo extends DoFn<String, TableRow> {
