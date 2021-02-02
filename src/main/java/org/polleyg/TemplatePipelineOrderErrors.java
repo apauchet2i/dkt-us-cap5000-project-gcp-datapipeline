@@ -13,6 +13,7 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.values.PCollection;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -31,10 +32,17 @@ public class TemplatePipelineOrderErrors {
         TemplateOptions options = PipelineOptionsFactory.as(TemplateOptions.class);
 
         Pipeline pipeline = Pipeline.create(options);
-        pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
+        PCollection<String> pcollection = pipeline.apply("READ", TextIO.read().from(options.getInputFile()));
                 //pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-05_01_2021_10_11_36.json"))
 
-                .apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
+        pcollection.apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
+                .apply("WRITE", BigQueryIO.writeTableRows()
+                        .to(String.format("%s:dkt_us_test_cap5000.order_errors", options.getProject()))
+                        .withCreateDisposition(CREATE_IF_NEEDED)
+                        .withWriteDisposition(WRITE_TRUNCATE)
+                        .withSchema(getTableSchemaOrder()));
+
+        pcollection.apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
                 .apply("WRITE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:dkt_us_test_cap5000.order_errors", options.getProject()))
                         .withCreateDisposition(CREATE_IF_NEEDED)
@@ -52,10 +60,12 @@ public class TemplatePipelineOrderErrors {
 
     public interface TemplateOptions extends DataflowPipelineOptions {
         @Description("GCS path of the file to read from")
-        ValueProvider<String> getInputFile();
+        ValueProvider.RuntimeValueProvider<String> getInputFile();
 
         void setInputFile(ValueProvider<String> value);
     }
+
+
 
     public static class TransformJsonParDo extends DoFn<String, TableRow> {
 

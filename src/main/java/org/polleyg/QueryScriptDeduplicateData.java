@@ -23,9 +23,6 @@ public class QueryScriptDeduplicateData {
         uniqueBigQueryCombinaison.add(Pair.of("number", "created_at")); // orders table
         uniqueBigQueryCombinaison.add(Pair.of("shipment_id", "source")); // shipment_trackings table
 
-        String projectId = "MY_PROJECT_ID";
-        String datasetName = "MY_DATASET_NAME";
-
         for (int i =0; i<bigQueryTableList.size();i++) {
                 String query = "DELETE FROM `dkt-us-data-lake-a1xq.dkt_us_test_cap5000." + bigQueryTableList.get(i) + "` d "
                         + "WHERE EXISTS (WITH redundant AS ( "

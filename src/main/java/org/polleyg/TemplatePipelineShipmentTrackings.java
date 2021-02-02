@@ -52,7 +52,7 @@ public class TemplatePipelineShipmentTrackings {
 
     public interface TemplateOptions extends DataflowPipelineOptions {
         @Description("GCS path of the file to read from")
-        ValueProvider<String> getInputFile();
+        ValueProvider.RuntimeValueProvider<String> getInputFile();
 
         void setInputFile(ValueProvider<String> value);
     }

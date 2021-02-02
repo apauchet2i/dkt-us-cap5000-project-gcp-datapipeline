@@ -16,7 +16,7 @@ steps:
 
   # 3. Build and run the Dataflow pipeline (staged template)
 - name: gcr.io/cloud-builders/gradle
-  args: ['build', 'runTemplatePipelineOrders', 'runTemplatePipelineCustomers', 'runTemplatePipelineOrderItems', 'runTemplatePipelineOrderShipments','runTemplatePipelineOrderSources', 'runTemplatePipelineShipmentTrackings','runQueryScriptDeduplicateData']
+  args: ['build', 'runTemplatePipelineOrders']
   waitFor: ['terraform-apply']
 
 

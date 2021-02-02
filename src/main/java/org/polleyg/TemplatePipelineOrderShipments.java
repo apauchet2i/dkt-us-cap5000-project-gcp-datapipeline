@@ -40,11 +40,11 @@ public class TemplatePipelineOrderShipments {
                         .to(String.format("%s:dkt_us_test_cap5000.order_shipments", options.getProject()))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withSchema(getTableSchemaOrderStatus()));
+                        .withSchema(getTableSchemaOrderShipments()));
         pipeline.run();
     }
 
-    private static TableSchema getTableSchemaOrderStatus() {
+    private static TableSchema getTableSchemaOrderShipments() {
         List<TableFieldSchema> fields = new ArrayList<>();
         fields.add(new TableFieldSchema().setName("id").setType("STRING").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
@@ -56,7 +56,7 @@ public class TemplatePipelineOrderShipments {
 
     public interface TemplateOptions extends DataflowPipelineOptions {
         @Description("GCS path of the file to read from")
-        ValueProvider<String> getInputFile();
+        ValueProvider.RuntimeValueProvider<String> getInputFile();
 
         void setInputFile(ValueProvider<String> value);
     }
@@ -110,7 +110,7 @@ public class TemplatePipelineOrderShipments {
             if (split.length > 7) return;
             TableRow row = new TableRow();
             for (int i = 0; i < split.length; i++) {
-                TableFieldSchema col = getTableSchemaOrderStatus().getFields().get(i);
+                TableFieldSchema col = getTableSchemaOrderShipments().getFields().get(i);
                 row.set(col.getName(), split[i]);
             }
             c.output(row);
