@@ -51,7 +51,7 @@ exports.goWithTheDataFlow = function(file, context) {
               zone: "us-central1-f"
             },
             jobName: 'called-from-a-cloud-function-batch-pipeline-' + new Date().getTime(),
-            gcsPath: 'gs://deploy-project-cap5000/template/pipeline'
+            gcsPath: 'gs://deploy-project-cap5000/template/pipelineOrders'
           }
         }, function(err, response) {
           if (err) {
