@@ -37,7 +37,7 @@ steps:
   # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
   id: function-deploy-deduplicatedata
-  args: ['functions', 'deploy', 'deduplicateData', '--trigger-resource=projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline', '--trigger-event providers/cloud.pubsub/eventTypes/topic.publish', '--runtime=nodejs12']
+  args: ['functions', 'deploy', 'deduplicateData', '--trigger-topic=dkt-us-cap5000-project-end-datapipeline', '--runtime=nodejs12']
   dir: 'cloud-function/deduplicateData'
   #waitFor: ['npm-install-test']
 
