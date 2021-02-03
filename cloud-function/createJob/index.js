@@ -3,7 +3,7 @@ const google = require('googleapis');
 const {BigQuery} = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
 
-exports.goWithTheDataFlow = function(file, context) {
+exports.createJob = function(file, context) {
 
   console.log(`  Event: ${context.eventId}`);
   console.log(`  Event Type: ${context.eventType}`);
@@ -56,51 +56,6 @@ exports.goWithTheDataFlow = function(file, context) {
         }, function(err, response) {
           if (err) {
             console.error("Problem running dataflow template, error was: ", err);
-          }
-          else {
-            // Import the Google Cloud client library using default credentials
-
-            async function query() {
-
-              var uniqueBigQueryCombinaison = {};
-              uniqueBigQueryCombinaison["id"] = "latname"; // customers table
-              uniqueBigQueryCombinaison["order_number"] = "error_type"; // order_errors table
-              uniqueBigQueryCombinaison["shipment_id"] = "source"; // order_items table
-              uniqueBigQueryCombinaison["id"] = "source"; // order_shipments table
-              uniqueBigQueryCombinaison["order_number"] = "source"; // order_sources table
-              uniqueBigQueryCombinaison["order_number"] = "source";// order_status table
-              uniqueBigQueryCombinaison["number"] = "created_at";// orders table
-              uniqueBigQueryCombinaison["shipment_id"] = "source"; // shipment_trackings table
-
-              var bigQueryTableList = ["customers","order_errors","order_items","order_shipments","order_sources","order_status", "orders", "shipment_trackings"];
-
-
-              const query = `DELETE FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.@table\` d 
-                            WHERE EXISTS (WITH redundant AS (
-                            SELECT @firstAttribute, @secondAttribute,
-                            COUNT(*) AS counter FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.bigQueryTableList.get(i)\`
-                            GROUP BY @firstAttribute, @secondAttribute HAVING counter > 1)
-                            SELECT 1 FROM redundant WHERE d.@firstAttribute = @firstAttribute AND d.@secondAttribute = @secondAttribute)`;
-
-              // For all options, see https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query
-              const options = {
-                query: query,
-                // Location must match that of the dataset(s) referenced in the query.
-                location: 'US',
-                params: {table: 'orders', firstAttribute: 'number', secondAttribute:'created_at'},
-              };
-
-              // Run the query as a job
-              const [job] = await bigquery.createQueryJob(options);
-              console.log(`Job ${job.id} started.`);
-
-              // Wait for the query to finish
-              const [rows] = await job.getQueryResults();
-
-              // Print the results
-              console.log('Rows:');
-              rows.forEach(row => console.log(row));
-            }
           }
           console.log("Dataflow template response: ", response);
           //callback();
