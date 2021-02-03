@@ -38,10 +38,10 @@ public class TemplatePipelineOrders {
 
         Pipeline pipeline = Pipeline.create(options);
 
-        PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
+        PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from(options.getInputFile()));
         //PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-25_11_2020_21_36_25.json"));
         //PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-21_01_2021_21_17_48.json"));
-        PCollection<TableRow> rows = pcollection1.apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
+        PCollection<TableRow> rows = pcollection1.apply("TRANSFORM", ParDo.of(new TransformJsonParDo()));
         WriteResult writeResult= rows.apply("WRITE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:dkt_us_test_cap5000.orders", options.getProject()))
                         .withCreateDisposition(CREATE_IF_NEEDED)
