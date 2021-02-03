@@ -30,14 +30,14 @@ steps:
 # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
   id: function-deploy-createjob
-  args: ['functions', 'deploy', 'goWithTheDataFlow', '--trigger-event=google.storage.object.finalize', '--stage-bucket=gs://dkt-us-ldp-baptiste-test', '--trigger-resource=gs://dkt-us-ldp-baptiste-test', '--runtime=nodejs12','--service-account=data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com']
+  args: ['functions', 'deploy', 'createJob', '--trigger-event=google.storage.object.finalize', '--stage-bucket=gs://dkt-us-ldp-baptiste-test', '--trigger-resource=gs://dkt-us-ldp-baptiste-test', '--runtime=nodejs12','--service-account=data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com']
   dir: 'cloud-function/createJob'
   #waitFor: ['npm-install-test']
 
   # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
   id: function-deploy-deduplicatedata
-  args: ['functions', 'deploy', 'goWithTheDataFlow', '--trigger-topic=projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline', '--runtime=nodejs12']
+  args: ['functions', 'deploy', 'deduplicateData', '--trigger-topic=projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline', '--runtime=nodejs12']
   dir: 'cloud-function/deduplicateData'
   #waitFor: ['npm-install-test']
 

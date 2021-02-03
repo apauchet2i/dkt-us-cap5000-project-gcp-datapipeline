@@ -31,23 +31,19 @@ public class TemplatePipelineOrderErrors {
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.as(TemplateOptions.class);
 
+        String project = "dkt-us-data-lake-a1xq";
+        String dataset = "dkt_us_test_cap5000";
+        String table = "orders";
+
         Pipeline pipeline = Pipeline.create(options);
-        PCollection<String> pcollection = pipeline.apply("READ", TextIO.read().from(options.getInputFile()));
-                //pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-05_01_2021_10_11_36.json"))
 
-        pcollection.apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
-                .apply("WRITE", BigQueryIO.writeTableRows()
-                        .to(String.format("%s:dkt_us_test_cap5000.order_errors", options.getProject()))
-                        .withCreateDisposition(CREATE_IF_NEEDED)
-                        .withWriteDisposition(WRITE_TRUNCATE)
-                        .withSchema(getTableSchemaOrder()));
+        // payment failure
+        PCollection<TableRow> pcollection = pipeline.apply(
+                "Read from BigQuery query",
+                BigQueryIO.readTableRows()
+                        .fromQuery(String.format("SELECT * FROM `%s.%s.%s` WHERE status = 'voided' ", project, dataset, "order_status"))
+                        .usingStandardSql());
 
-        pcollection.apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
-                .apply("WRITE", BigQueryIO.writeTableRows()
-                        .to(String.format("%s:dkt_us_test_cap5000.order_errors", options.getProject()))
-                        .withCreateDisposition(CREATE_IF_NEEDED)
-                        .withWriteDisposition(WRITE_TRUNCATE)
-                        .withSchema(getTableSchemaOrder()));
         pipeline.run();
     }
 
@@ -63,41 +59,6 @@ public class TemplatePipelineOrderErrors {
         ValueProvider.RuntimeValueProvider<String> getInputFile();
 
         void setInputFile(ValueProvider<String> value);
-    }
-
-
-
-    public static class TransformJsonParDo extends DoFn<String, TableRow> {
-
-        @ProcessElement
-        public void processElement(ProcessContext c) throws Exception {
-            JSONParser parser = new JSONParser();
-            Object obj = parser.parse(c.element());
-            JSONObject jsonObject = (JSONObject) obj;
-
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
-
-            JSONObject customer = (JSONObject) jsonObject.get("customer");
-            JSONObject shippingAddress = (JSONObject) jsonObject.get("shipping_address");
-
-            Map<String, Object> map = new HashMap<>();
-            map.put("number", jsonObject.get("name"));
-            map.put("customer_id", String.valueOf(customer.get("id")));
-            map.put("street1", shippingAddress.get("address1"));
-            if (shippingAddress.get("address2") != null) {
-                map.put("street2", shippingAddress.get("address2"));
-            }
-            map.put("zip_code", shippingAddress.get("zip"));
-            map.put("city", shippingAddress.get("city"));
-            map.put("country", shippingAddress.get("country"));
-            map.put("created_at", ((String) jsonObject.get("created_at")).substring(0, ((String) jsonObject.get("created_at")).length() - 6));
-            map.put("updated_at", timeStampNow);
-            JSONObject jsonToBigQuery = new JSONObject(map);
-            TableRow tableRow = convertJsonToTableRow(String.valueOf(jsonToBigQuery));
-            c.output(tableRow);
-        }
     }
 
     public static class WikiParDo extends DoFn<String, TableRow> {

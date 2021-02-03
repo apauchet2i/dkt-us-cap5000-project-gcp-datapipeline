@@ -1,7 +1,5 @@
 //gcloud --project=grey-sort-challenge functions deploy goWithTheDataFlow --stage-bucket gs://batch-pipeline --trigger-bucket gs://batch-pipeline
 const google = require('googleapis');
-const {BigQuery} = require('@google-cloud/bigquery');
-const bigquery = new BigQuery();
 
 exports.createJob = function(file, context) {
 
@@ -46,7 +44,6 @@ exports.createJob = function(file, context) {
               inputFile: `gs://${file.bucket}/${fileName}`
             },
             environment: {
-              //serviceAccountEmail: 'tony.leon@decathlon.com',
               tempLocation: "gs://deploy-project-cap5000/temp",
               zone: "us-central1-f"
             },
