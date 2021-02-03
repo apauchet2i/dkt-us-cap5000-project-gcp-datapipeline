@@ -1,6 +1,8 @@
 const google = require('googleapis');
 const {BigQuery} = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
+const PubSub = require(`@google-cloud/pubsub`);
+const pubsub = new PubSub();
 
 exports.deduplicateData = function() {
 
@@ -69,6 +71,37 @@ exports.deduplicateData = function() {
         rows.forEach(row => console.log(row));
       }
       query();
+
+
+      const subscriptionName = 'projects/dkt-us-data-lake-a1xq/subscriptions/gcf-deduplicateData-us-central1-dkt-us-cap5000-project-end-datapipeline';
+      const timeout = 60;
+
+      const subscription = pubsub.subscription(subscriptionName);
+
+      let messageCount = 0;
+
+      /**
+       * Handler for received message.
+       * @param {Object} message
+       */
+
+      const messageHandler = message => {
+        console.log(`Received message ${message.id}:`);
+        console.log(`Data: ${message.data}`);
+        console.log(`tAttributes: ${message.attributes}`);
+        messageCount += 1;
+
+        // Ack the messae
+        message.ack();
+      };
+
+      // Listen for new messages until timeout is hit
+      subscription.on(`message`, messageHandler);
+      setTimeout(() => {
+        subscription.removeListener('message', messageHandler);
+        console.log(`${messageCount} message(s) received.`);
+      }, timeout * 1000);
+
     });
   });
 };
