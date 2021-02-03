@@ -17,7 +17,7 @@ steps:
   # 3. Build and run the Dataflow pipeline (staged template)
 - name: gcr.io/cloud-builders/gradle
   id: build-dataflow-pipeline
-  args: ['build', 'runTemplatePipelineOrders']
+  args: ['build', 'runTemplatePipelineDataToBigQuery']
   waitFor: ['terraform-apply']
 
 # 4b. Deploy the Cloud Function that listens to the bucket
