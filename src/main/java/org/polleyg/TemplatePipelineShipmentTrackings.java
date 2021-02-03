@@ -82,12 +82,12 @@ public class TemplatePipelineShipmentTrackings {
                     System.out.println((fulfillment.get("tracking_numbers")).getClass());
                     mapShipmentOrder.put("tracking_id", trackingNumbers.get(0));
                 } else {
-                    mapShipmentOrder.put("tracking_id", "null");
+                    mapShipmentOrder.put("tracking_id", null);
                 }
                 if (fulfillment.get("tracking_urls") != null && trackingUrls.size()!= 0) {
                     mapShipmentOrder.put("tracking_link", trackingUrls.get(0));
                 } else {
-                    mapShipmentOrder.put("tracking_link", "null");
+                    mapShipmentOrder.put("tracking_link", null);
                 }
             }
 
