@@ -1,4 +1,4 @@
-
+const google = require('googleapis');
 const {BigQuery} = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
 
