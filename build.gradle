@@ -40,8 +40,8 @@ dependencies {
 //}
 //mainClassName="org.polleyg.TemplatePipelineOrders"
 
-task runTemplatePipelineOrders (type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineOrders'
+task runTemplatePipelineDataToBigQuery (type: JavaExec) {
+    main = 'org.polleyg.TemplatePipelineDataToBigQuery'
     classpath = sourceSets.main.runtimeClasspath
         args "--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
@@ -50,110 +50,10 @@ task runTemplatePipelineOrders (type: JavaExec) {
             "--region=us-central1",
             "--stagingLocation=gs://deploy-project-cap5000/staging",
             "--tempLocation=gs://deploy-project-cap5000/temp",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineOrders",
+            "--templateLocation=gs://deploy-project-cap5000/template/pipelineDataToBigQuery",
             '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
             '--usePublicIps=false'
 }
 
-task runTemplatePipelineCustomers (type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineCustomers'
-    classpath = sourceSets.main.runtimeClasspath
-    args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
-            "--maxNumWorkers=5",
-            "--numWorkers=1",
-            "--region=us-central1",
-            "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--tempLocation=gs://deploy-project-cap5000/temp",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineCustomers",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
-}
 
-task runTemplatePipelineOrderItems (type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineOrderItems'
-    classpath = sourceSets.main.runtimeClasspath
-    args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
-            "--maxNumWorkers=5",
-            "--numWorkers=1",
-            "--region=us-central1",
-            "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--tempLocation=gs://deploy-project-cap5000/temp",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineOrderItems",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
-}
-
-task runTemplatePipelineOrderShipments (type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineOrderShipments'
-    classpath = sourceSets.main.runtimeClasspath
-    args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
-            "--maxNumWorkers=5",
-            "--numWorkers=1",
-            "--region=us-central1",
-            "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--tempLocation=gs://deploy-project-cap5000/temp",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineOrderShipments",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
-}
-
-task runTemplatePipelineOrderSources(type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineOrderSources'
-    classpath = sourceSets.main.runtimeClasspath
-    args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
-            "--maxNumWorkers=5",
-            "--numWorkers=1",
-            "--region=us-central1",
-            "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--tempLocation=gs://deploy-project-cap5000/temp",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineOrderSources",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
-}
-
-task runTemplatePipelineOrderStatus(type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineOrderStatus'
-    classpath = sourceSets.main.runtimeClasspath
-    args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
-            "--maxNumWorkers=5",
-            "--numWorkers=1",
-            "--region=us-central1",
-            "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--tempLocation=gs://deploy-project-cap5000/temp",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineOrderStatus",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
-}
-
-task runTemplatePipelineShipmentTrackings(type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineShipmentTrackings'
-    classpath = sourceSets.main.runtimeClasspath
-    args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
-            "--maxNumWorkers=5",
-            "--numWorkers=1",
-            "--region=us-central1",
-            "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--tempLocation=gs://deploy-project-cap5000/temp",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineShipmentTrackings",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
-}
-
-task runQueryScriptDeduplicateData(type: JavaExec) {
-    main = 'org.polleyg.QueryScriptDeduplicateData'
-    classpath = sourceSets.main.runtimeClasspath
-      dependsOn 'runTemplatePipelineShipmentTrackings'
-    dependsOn 'runTemplatePipelineOrderStatus'
-    dependsOn 'runTemplatePipelineOrderSources'
-    dependsOn 'runTemplatePipelineOrderShipments'
-    dependsOn 'runTemplatePipelineOrderItems'
-    dependsOn 'runTemplatePipelineCustomers'
-    dependsOn 'runTemplatePipelineOrders'
-}
 

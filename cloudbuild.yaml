@@ -16,37 +16,20 @@ steps:
 
   # 3. Build and run the Dataflow pipeline (staged template)
 - name: gcr.io/cloud-builders/gradle
+  id: build-dataflow-pipeline
   args: ['build', 'runTemplatePipelineOrders']
   waitFor: ['terraform-apply']
-
-
-# 4a. Install npm & run tests
-#- name: gcr.io/cloud-builders/npm
-#  id: npm-install-test
-#  args: ['install-test']
-#  dir: 'cloud-function'
-#  waitFor: ['terraform-apply']
 
 # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
   id: function-deploy-createjob
   args: ['functions', 'deploy', 'createJob', '--trigger-event=google.storage.object.finalize', '--stage-bucket=gs://dkt-us-ldp-baptiste-test', '--trigger-resource=gs://dkt-us-ldp-baptiste-test', '--runtime=nodejs12','--service-account=data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com']
   dir: 'cloud-function/createJob'
-  #waitFor: ['npm-install-test']
+  waitFor: ['build-dataflow-pipeline']
 
   # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
   id: function-deploy-deduplicatedata
   args: ['functions', 'deploy', 'deduplicateData', '--trigger-topic=dkt-us-cap5000-project-end-datapipeline', '--runtime=nodejs12']
   dir: 'cloud-function/deduplicateData'
-  #waitFor: ['npm-install-test']
-
-## 5. Trigger the pipeline for demo purposes
-#- name: gcr.io/cloud-builders/gsutil
-#  args: ['cp', 'gs://dkt-us-ldp-baptiste-test/webhookNewStore-13_01_2021_07_14_17.json', 'gs://dkt-us-ldp-baptiste-test/upload/webhookNewStore-13_01_2021_07_14_17.json']
-
-## 6. Copy tarball/archive to GCS for more shenanigans later
-#artifacts:
-#  objects:
-#    location: 'gs://batch-pipeline/artifacts'
-#    paths: ['build/distributions/*.*']
+  waitFor: ['build-dataflow-pipeline']

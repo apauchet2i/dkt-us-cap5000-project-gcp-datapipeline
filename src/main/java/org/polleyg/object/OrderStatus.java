@@ -25,7 +25,7 @@ import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
 public class OrderStatus {
 
-    private static TableSchema getTableSchemaOrderStatus() {
+    public static TableSchema getTableSchemaOrderStatus() {
         List<TableFieldSchema> fields = new ArrayList<>();
         fields.add(new TableFieldSchema().setName("order_number").setType("STRING").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
