@@ -19,7 +19,7 @@ import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
  */
 public class Customer {
 
-    private static TableSchema getTableSchemaCustomer() {
+    public static TableSchema getTableSchemaCustomer() {
         List<TableFieldSchema> fields = new ArrayList<>();
         fields.add(new TableFieldSchema().setName("id").setType("INTEGER").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("lastname").setType("STRING").setMode("REQUIRED"));
