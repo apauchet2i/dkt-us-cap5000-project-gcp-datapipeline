@@ -47,8 +47,8 @@ exports.createJob = function(file, context) {
               tempLocation: "gs://deploy-project-cap5000/temp",
               zone: "us-central1-f"
             },
-            jobName: 'called-from-a-cloud-function-batch-pipeline-' + new Date().getTime(),
-            gcsPath: 'gs://deploy-project-cap5000/template/pipelineOrders'
+            jobName: 'pipelineDataToBigQuery' + new Date().getTime(),
+            gcsPath: 'gs://deploy-project-cap5000/template/pipelineDataToBigQuery'
           }
         }, function(err, response) {
           if (err) {
