@@ -52,7 +52,7 @@ public class TemplatePipelineOrders {
                 .apply("OnePerInsertedRow", ParDo.of(new DoFn<TableRow, Integer>() {
                     @ProcessElement
                     public void processElement(ProcessContext c) {
-                        c.output(Integer.valueOf(1));
+                        c.output(1);
                     }
                 }))
                 .apply("SumInsertedCounts", Sum.integersGlobally())
