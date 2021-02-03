@@ -27,7 +27,7 @@ exports.deduplicateData = function() {
                             GROUP BY number, customer_id 
                             HAVING counter > 1)
                             SELECT * FROM redundant 
-                            WHERE d.customer_id = customer_id AND d.number=number)`;
+                            WHERE d.customer_id = customer_id AND d.updated_at != updated_at)`;
 
       // For all options, see https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query
       const options = {

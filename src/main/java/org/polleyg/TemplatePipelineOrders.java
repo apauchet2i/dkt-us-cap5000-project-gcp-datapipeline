@@ -1,25 +1,14 @@
 package org.polleyg;
 
-import com.google.api.services.bigquery.model.Row;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
-import com.google.cloud.bigquery.*;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
-import org.apache.beam.sdk.schemas.*;
-import com.google.cloud.spanner.Struct;
-import org.apache.beam.repackaged.core.org.apache.commons.lang3.tuple.Pair;
-import org.apache.beam.sdk.extensions.sql.SqlTransform;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
-import org.apache.beam.sdk.io.gcp.spanner.SpannerIO;
-import org.apache.beam.sdk.schemas.Schema;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.values.PCollection;
-import org.checkerframework.checker.initialization.qual.Initialized;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.UnknownKeyFor;
-import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.JSONObject;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
@@ -49,16 +38,35 @@ public class TemplatePipelineOrders {
 
         Pipeline pipeline = Pipeline.create(options);
 
-        PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from(options.getInputFile()));
+        PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from(options.getInputFile()))
         //PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-25_11_2020_21_36_25.json"));
         //PCollection<String> pcollection1 = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-21_01_2021_21_17_48.json"));
-        pcollection1.apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
-                .apply("WRITE", BigQueryIO.writeTableRows()
+        PCollection<TableRow> rows = pcollection1.apply("TRANSFORM", ParDo.of(new TransformJsonParDo()))
+        WriteResult writeResult= rows.apply("WRITE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:dkt_us_test_cap5000.orders", options.getProject()))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
                         .withSchema(getTableSchemaOrder()));
-        pcollection1.apply("Write PubSub Messages", PubsubIO.writeStrings().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        rows.apply(Wait.on(writeResult.getFailedInserts()))
+                // Transforms each row inserted to an Integer of value 1
+                .apply("OnePerInsertedRow", ParDo.of(new DoFn<TableRow, Integer>() {
+                    @ProcessElement
+                    public void processElement(ProcessContext c) {
+                        c.output(Integer.valueOf(1));
+                    }
+                }))
+                .apply("SumInsertedCounts", Sum.integersGlobally())
+                .apply("CountsMessage", ParDo.of(new DoFn<Integer, PubsubMessage>() {
+                    @ProcessElement
+                    public void processElement(ProcessContext c) {
+                        String messagePayload = "pipeline_completed";
+                        Map<String, String> attributes = new HashMap<>();
+                        attributes.put("rows_written", c.element().toString());
+                        PubsubMessage message = new PubsubMessage(messagePayload.getBytes(), attributes);
+                        c.output(message);
+                    }
+                }))
+                .apply("Write PubSub Messages", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         pipeline.run();
     }
