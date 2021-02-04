@@ -44,7 +44,7 @@ exports.deduplicateData = function() {
           console.log(`\tAttributes: ${message.attributes}`);
           messageCount += 1;
 
-          var jsonData = JSON.stringify(${message.attributes});
+          var jsonData = JSON.stringify(message.attributes);
           var obj = JSON.parse(jsonData);
           console.log(jsonData.first_distinct_colon);
           console.log(jsonData.second_distinct_colon);
