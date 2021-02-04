@@ -1,8 +1,7 @@
 const google = require('googleapis');
 const {BigQuery} = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
-const PubSub = require(`@google-cloud/pubsub`);
-const pubSubClient = new PubSub();
+const {PubSub} = require('@google-cloud/pubsub');
 
 exports.deduplicateData = function() {
 
