@@ -25,9 +25,38 @@ exports.deduplicateData = function() {
         console.error(`Problems getting projectId (${projectId}). Err was: `, err);
         throw err;
       }
+      projectId = 'dkt-us-data-lake-a1xq', // Your Google Cloud Platform project ID
+      subscriptionName = 'projects/dkt-us-data-lake-a1xq/subscriptions/dkt-us-cap5000-project-end-datapipeline-sub' // Name for the new subscription to create
+
+      // Creates a client; cache this for further use
+      const pubSubClient = new PubSub();
+      const timeout = 60;
+
+      function listenForMessages() {
+        // References an existing subscription
+        const subscription = pubSubClient.subscription(subscriptionName);
+
+        // Create an event handler to handle messages
+        let messageCount = 0;
+        const messageHandler = message => {
+          console.log(`One message`);
+          console.log(`Received message ${message.id}:`);
+          console.log(`\tData: ${message.data}`);
+          console.log(`\tAttributes: ${message.attributes}`);
+          messageCount += 1;
+
+          // "Ack" (acknowledge receipt of) the message
+          message.ack();
+        };
+
+        // Listen for new messages until timeout is hit
+        subscription.on('message', messageHandler);
+
+      }
+
+      listenForMessages();
 
       async function query() {
-
         var uniqueBigQueryCombinaison = {};
         uniqueBigQueryCombinaison["id"] = "latname"; // customers table
         uniqueBigQueryCombinaison["order_number"] = "error_type"; // order_errors table
@@ -71,21 +100,8 @@ exports.deduplicateData = function() {
         rows.forEach(row => console.log(row));
       }
 
-      async function getSubscription() {
-        // Gets the metadata for the subscription
-        const [metadata] = await pubSubClient
-            .subscription('projects/dkt-us-data-lake-a1xq/subscriptions/gcf-deduplicateData-us-central1-dkt-us-cap5000-project-end-datapipeline')
-            .getMetadata();
-
-        console.log(`Subscription: ${metadata.name}`);
-        console.log(`Topic: ${metadata.topic}`);
-        console.log(`Push config: ${metadata.pushConfig.pushEndpoint}`);
-        console.log(`Ack deadline: ${metadata.ackDeadlineSeconds}s`);
-      }
-
       query();
-      getSubscription()
 
+      });
     });
-  });
 };
