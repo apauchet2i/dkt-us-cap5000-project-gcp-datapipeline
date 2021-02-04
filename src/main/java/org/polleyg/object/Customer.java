@@ -32,8 +32,7 @@ public class Customer {
         @ProcessElement
         public void processElement(ProcessContext c) throws Exception {
             JSONParser parser = new JSONParser();
-            System.out.println(c.element().getClass());
-            System.out.println(c.element());
+
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
@@ -45,9 +44,9 @@ public class Customer {
             mapCustomer.put("firstname", String.valueOf(customer.get("first_name")));
 
             JSONObject mapCustomerToBigQuery = new JSONObject(mapCustomer);
-            System.out.println(mapCustomerToBigQuery);
+
             TableRow tableRow = convertJsonToTableRow(String.valueOf(mapCustomerToBigQuery));
-            System.out.println(tableRow);
+
             c.output(tableRow);
         }
     }

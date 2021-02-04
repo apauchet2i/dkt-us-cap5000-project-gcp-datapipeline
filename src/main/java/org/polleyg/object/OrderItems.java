@@ -30,11 +30,9 @@ public class OrderItems {
     public static class TransformJsonParDoOrderItems extends DoFn<String, TableRow> {
 
         @ProcessElement
-        public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
+        public void mapJsonToBigQueryTable(ProcessContext c) throws Exception {
             List<TableRow> listTableRow = new ArrayList<>();
             JSONParser parser = new JSONParser();
-            System.out.println(c.element().getClass());
-            System.out.println(c.element());
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
@@ -55,14 +53,11 @@ public class OrderItems {
                     mapOrderItems.put("source", "shopify");
                     mapOrderItems.put("name", item.get("name"));
                     mapOrderItems.put("price", item.get("price"));
-                    System.out.println(item.get("price"));
-                    System.out.println(item.get("quantity"));
                     mapOrderItems.put("quantity", item.get("quantity"));
                     mapOrderItems.put("updated_at", timeStampNow);
                     JSONObject mapOrderItemsToBigQuery = new JSONObject(mapOrderItems);
                     TableRow tableRowOrderItems = convertJsonToTableRow(String.valueOf(mapOrderItemsToBigQuery));
                     listTableRow.add(tableRowOrderItems);
-                    System.out.println(listTableRow);
                 }
             }
 

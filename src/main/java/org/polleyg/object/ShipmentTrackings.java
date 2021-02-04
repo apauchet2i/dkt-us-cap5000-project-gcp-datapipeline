@@ -32,8 +32,6 @@ public class ShipmentTrackings {
         public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
             List<TableRow> listTableRow = new ArrayList<>();
             JSONParser parser = new JSONParser();
-            System.out.println(c.element().getClass());
-            System.out.println(c.element());
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
@@ -47,8 +45,6 @@ public class ShipmentTrackings {
                 JSONArray trackingNumbers = (JSONArray) fulfillment.get("tracking_numbers");
                 JSONArray trackingUrls = (JSONArray) fulfillment.get("tracking_urls");
                 if (fulfillment.get("tracking_numbers") != null && trackingNumbers.size() != 0 ) {
-                    System.out.println(fulfillment.get("tracking_numbers"));
-                    System.out.println((fulfillment.get("tracking_numbers")).getClass());
                     mapShipmentOrder.put("tracking_id", trackingNumbers.get(0));
                 } else {
                     mapShipmentOrder.put("tracking_id", "null");
@@ -63,7 +59,6 @@ public class ShipmentTrackings {
             JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
             TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
             listTableRow.add(tableRowStatusFulfillment);
-            System.out.println(listTableRow);
 
             for (TableRow tableRow : listTableRow) {
                 c.output(tableRow);

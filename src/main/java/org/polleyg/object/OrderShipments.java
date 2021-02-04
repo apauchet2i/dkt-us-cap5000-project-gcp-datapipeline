@@ -45,8 +45,7 @@ public class OrderShipments {
         public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
             List<TableRow> listTableRow = new ArrayList<>();
             JSONParser parser = new JSONParser();
-            System.out.println(c.element().getClass());
-            System.out.println(c.element());
+
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
@@ -70,7 +69,6 @@ public class OrderShipments {
             JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
             TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
             listTableRow.add(tableRowStatusFulfillment);
-            System.out.println(listTableRow);
 
             for (TableRow tableRow : listTableRow) {
                 c.output(tableRow);

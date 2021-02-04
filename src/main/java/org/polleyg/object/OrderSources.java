@@ -28,7 +28,7 @@ public class OrderSources {
 
     public static TableSchema getTableSchemaOrderSources() {
         List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("order_number").setType("INTEGER").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("order_number").setType("STRING").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
         return new TableSchema().setFields(fields);
     }
@@ -38,8 +38,6 @@ public class OrderSources {
         @ProcessElement
         public void processElement(ProcessContext c) throws Exception {
             JSONParser parser = new JSONParser();
-            System.out.println(c.element().getClass());
-            System.out.println(c.element());
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
@@ -48,9 +46,8 @@ public class OrderSources {
             mapOrderSources.put("source","shopify");
 
             JSONObject mapOrderSourcesToBigQuery = new JSONObject(mapOrderSources);
-            System.out.println(mapOrderSourcesToBigQuery);
             TableRow tableRow = convertJsonToTableRow(String.valueOf(mapOrderSourcesToBigQuery));
-            System.out.println(tableRow);
+
             c.output(tableRow);
         }
     }
