@@ -42,7 +42,6 @@ exports.deduplicateData = function() {
           console.log(`Received message ${message.id}:`);
           console.log(`\tData: ${message.data}`);
           console.log(`\tAttributes: ${message.attributes}`);
-          console.log(Type(${message.attributes}));
           messageCount += 1;
 
           var jsonData = JSON.stringify(${message.attributes});
