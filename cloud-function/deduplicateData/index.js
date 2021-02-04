@@ -2,7 +2,7 @@ const google = require('googleapis');
 const {BigQuery} = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
 const PubSub = require(`@google-cloud/pubsub`);
-const pubsub = new PubSub();
+const pubSubClient = new PubSub();
 
 exports.deduplicateData = function() {
 
@@ -70,37 +70,21 @@ exports.deduplicateData = function() {
         console.log('Rows:');
         rows.forEach(row => console.log(row));
       }
+
+      async function getSubscription() {
+        // Gets the metadata for the subscription
+        const [metadata] = await pubSubClient
+            .subscription('projects/dkt-us-data-lake-a1xq/subscriptions/gcf-deduplicateData-us-central1-dkt-us-cap5000-project-end-datapipeline')
+            .getMetadata();
+
+        console.log(`Subscription: ${metadata.name}`);
+        console.log(`Topic: ${metadata.topic}`);
+        console.log(`Push config: ${metadata.pushConfig.pushEndpoint}`);
+        console.log(`Ack deadline: ${metadata.ackDeadlineSeconds}s`);
+      }
+
       query();
-
-
-      const subscriptionName = 'projects/dkt-us-data-lake-a1xq/subscriptions/gcf-deduplicateData-us-central1-dkt-us-cap5000-project-end-datapipeline';
-      const timeout = 60;
-
-      const subscription = pubsub.subscription(subscriptionName);
-
-      let messageCount = 0;
-
-      /**
-       * Handler for received message.
-       * @param {Object} message
-       */
-
-      const messageHandler = message => {
-        console.log(`Received message ${message.id}:`);
-        console.log(`Data: ${message.data}`);
-        console.log(`tAttributes: ${message.attributes}`);
-        messageCount += 1;
-
-        // Ack the messae
-        message.ack();
-      };
-
-      // Listen for new messages until timeout is hit
-      subscription.on(`message`, messageHandler);
-      setTimeout(() => {
-        subscription.removeListener('message', messageHandler);
-        console.log(`${messageCount} message(s) received.`);
-      }, timeout * 1000);
+      getSubscription()
 
     });
   });
