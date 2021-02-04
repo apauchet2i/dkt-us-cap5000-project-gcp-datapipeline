@@ -56,10 +56,7 @@ public class TemplatePipelineDataToBigQuery {
                         .withWriteDisposition(WRITE_APPEND)
                         .withSchema(getTableSchemaOrder()));
         rowsOrders.apply(Wait.on(writeResultOrders.getFailedInserts()))
-                // Transforms each row inserted to an Integer of value 1
-                .apply("ONE PER INSERT ROW", ParDo.of(new TransformRowToInteger()))
-                .apply("SUM INSERTED COUNTS", Sum.integersGlobally())
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Orders_pipeline_completed")))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Orders_pipeline_completed","number","customer_id")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   CUSTOMERS TABLE   ********************************************
@@ -70,10 +67,7 @@ public class TemplatePipelineDataToBigQuery {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaCustomer()));
         rowsCustomers.apply(Wait.on(writeResultCustomers.getFailedInserts()))
-                // Transforms each row inserted to an Integer of value 1
-                .apply("ONE PER INSERT ROW", ParDo.of(new TransformRowToInteger()))
-                .apply("SUM INSERTED COUNTS", Sum.integersGlobally())
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Customers_pipeline_completed")))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Customers_pipeline_completed","id","lastname")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   ORDER ITEMS TABLE   ********************************************
@@ -84,10 +78,7 @@ public class TemplatePipelineDataToBigQuery {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderItems()));
         rowsOrderItems.apply(Wait.on(writeResultOrderItems.getFailedInserts()))
-                // Transforms each row inserted to an Integer of value 1
-                .apply("ONE PER INSERT ROW", ParDo.of(new TransformRowToInteger()))
-                .apply("SUM INSERTED COUNTS", Sum.integersGlobally())
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_items_pipeline_completed")))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_items_pipeline_completed","shipment_id","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   ORDER SOURCES TABLE   ********************************************
@@ -99,9 +90,8 @@ public class TemplatePipelineDataToBigQuery {
                 .withSchema(getTableSchemaOrderSources()));
         rowsOrderSources.apply(Wait.on(writeResultOrderSources.getFailedInserts()))
                 // Transforms each row inserted to an Integer of value 1
-                .apply("ONE PER INSERT ROW", ParDo.of(new TransformRowToInteger()))
-                .apply("SUM INSERTED COUNTS", Sum.integersGlobally())
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_sources_pipeline_completed")))
+
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_sources_pipeline_completed","order_number","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   ORDER STATUS TABLE   ********************************************
@@ -112,10 +102,7 @@ public class TemplatePipelineDataToBigQuery {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderStatus()));
         rowsOrderStatus.apply(Wait.on(writeResultOrderStatus.getFailedInserts()))
-                // Transforms each row inserted to an Integer of value 1
-                .apply("ONE PER INSERT ROW", ParDo.of(new TransformRowToInteger()))
-                .apply("SUM INSERTED COUNTS", Sum.integersGlobally())
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_status_pipeline_completed")))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_status_pipeline_completed","order_number","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   ORDER SHIPMENTS TABLE   ********************************************
@@ -126,10 +113,7 @@ public class TemplatePipelineDataToBigQuery {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderShipments()));
         rowsOrderShipments.apply(Wait.on(writeResultOrderShipments.getFailedInserts()))
-                // Transforms each row inserted to an Integer of value 1
-                .apply("ONE PER INSERT ROW", ParDo.of(new TransformRowToInteger()))
-                .apply("SUM INSERTED COUNTS", Sum.integersGlobally())
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_shipments_pipeline_completed")))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_shipments_pipeline_completed","id","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   SHIPMENT TRACKINGS TABLE   ********************************************
@@ -140,10 +124,7 @@ public class TemplatePipelineDataToBigQuery {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaShipmentTrackings()));
         rowsShipmentTrackings.apply(Wait.on(writeResultShipmentTrackings.getFailedInserts()))
-                // Transforms each row inserted to an Integer of value 1
-                .apply("ONE PER INSERT ROW", ParDo.of(new TransformRowToInteger()))
-                .apply("SUM INSERTED COUNTS", Sum.integersGlobally())
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Shipment_trackings_pipeline_completed")))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Shipment_trackings_pipeline_completed","shipment_id","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         pipeline.run();
@@ -161,17 +142,22 @@ public class TemplatePipelineDataToBigQuery {
             c.output(1);
         }
     }
-    public static class CountMessage extends DoFn<Integer, PubsubMessage>{
+    public static class CountMessage extends DoFn<TableRow, PubsubMessage>{
         private String messageDone;
+        private String firstDistinctColon;
+        private String secondDistinctColon;
 
-        public CountMessage(String messageDone) {
+        public CountMessage(String messageDone, String firstDistinctColon, String secondDistinctColon) {
             this.messageDone = messageDone;
+            this.firstDistinctColon = firstDistinctColon;
+            this.secondDistinctColon = secondDistinctColon;
 
         }
         @ProcessElement
         public void processElement(ProcessContext c) {
             Map<String, String> attributes = new HashMap<>();
-            attributes.put("rows_written", c.element().toString());
+            attributes.put("first_distinct_colon", firstDistinctColon);
+            attributes.put("second_distinct_colon", secondDistinctColon);
             PubsubMessage message = new PubsubMessage(messageDone.getBytes(), attributes);
             c.output(message);
         }

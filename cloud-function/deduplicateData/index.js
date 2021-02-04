@@ -42,8 +42,13 @@ exports.deduplicateData = function() {
           console.log(`Received message ${message.id}:`);
           console.log(`\tData: ${message.data}`);
           console.log(`\tAttributes: ${message.attributes}`);
+          console.log(Type(${message.attributes}));
           messageCount += 1;
 
+          var jsonData = JSON.stringify(${message.attributes});
+          var obj = JSON.parse(jsonData);
+          console.log(jsonData.first_distinct_colon);
+          console.log(jsonData.second_distinct_colon);
           // "Ack" (acknowledge receipt of) the message
           message.ack();
         };
