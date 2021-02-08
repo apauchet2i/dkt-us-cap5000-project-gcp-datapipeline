@@ -1,17 +1,9 @@
-package org.polleyg.object;
+package org.polleyg.models;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
-import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
-import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.io.TextIO;
-import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.apache.beam.sdk.options.Description;
-import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.ParDo;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -20,32 +12,25 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
-/**
- * Do some randomness
- */
-public class OrderShipments {
+public class OrderErrors {
 
-    public static TableSchema getTableSchemaOrderShipments() {
+    public static TableSchema getTableSchemaOrderErrors() {
         List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("id").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("order_number").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("status").setType("STRING").setMode("NULLABLE"));
+        fields.add(new TableFieldSchema().setName("error_type").setType("STRING").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
+        fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("NULLABLE"));
         return new TableSchema().setFields(fields);
     }
 
-    public static class TransformJsonParDoOrderShipments extends DoFn<String, TableRow> {
+    public static class TransformJsonParDoShipmentTrackingsShopify extends DoFn<String, TableRow> {
 
         @ProcessElement
         public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
             List<TableRow> listTableRow = new ArrayList<>();
             JSONParser parser = new JSONParser();
-
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
@@ -56,14 +41,23 @@ public class OrderShipments {
             JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
             Map<Object, Object> mapShipmentOrder = new HashMap<>();
             mapShipmentOrder.put("source","shopify");
-            mapShipmentOrder.put("order_number",jsonObject.get("name"));
-            mapShipmentOrder.put("updated_at", timeStampNow);
 
             for (Object o : fulfillmentArray) {
                 JSONObject fulfillment = (JSONObject) o;
-                mapShipmentOrder.put("id", fulfillment.get("name"));
-                mapShipmentOrder.put("status", fulfillment.get("shipment_status"));
-
+                mapShipmentOrder.put("shipment_id", fulfillment.get("name"));
+                JSONArray trackingNumbers = (JSONArray) fulfillment.get("tracking_numbers");
+                JSONArray trackingUrls = (JSONArray) fulfillment.get("tracking_urls");
+                if (fulfillment.get("tracking_numbers") != null && trackingNumbers.size() != 0 ) {
+                    mapShipmentOrder.put("tracking_id", trackingNumbers.get(0));
+                } else {
+                    mapShipmentOrder.put("tracking_id", "null");
+                }
+                if (fulfillment.get("tracking_urls") != null && trackingUrls.size()!= 0) {
+                    mapShipmentOrder.put("tracking_link", trackingUrls.get(0));
+                } else {
+                    mapShipmentOrder.put("tracking_link", "null");
+                }
+                mapShipmentOrder.put("updated_at", timeStampNow);
             }
 
             JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);

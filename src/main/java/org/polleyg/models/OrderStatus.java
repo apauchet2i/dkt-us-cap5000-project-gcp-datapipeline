@@ -1,17 +1,10 @@
-package org.polleyg.object;
+package org.polleyg.models;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
-import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
-import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.io.TextIO;
-import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.apache.beam.sdk.options.Description;
-import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
-import org.apache.beam.sdk.transforms.ParDo;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -19,11 +12,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
 public class OrderStatus {
+
+    static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
+    static LocalDateTime now = LocalDateTime.now();
+    static String timeStampNow = dtf.format(now);
 
     public static TableSchema getTableSchemaOrderStatus() {
         List<TableFieldSchema> fields = new ArrayList<>();
@@ -35,7 +30,7 @@ public class OrderStatus {
         return new TableSchema().setFields(fields);
     }
 
-    public static class TransformJsonParDoOrderStatus extends DoFn<String, TableRow> {
+    public static class TransformJsonParDoOrderStatusShopify extends DoFn<String, TableRow> {
 
         @ProcessElement
         public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
@@ -91,6 +86,79 @@ public class OrderStatus {
 
             for (TableRow tableRow : listTableRow) {
                 c.output(tableRow);
+            }
+        }
+    }
+    public static class TransformJsonParDoOrderStatusNewStore extends DoFn<String, TableRow> {
+
+        @ProcessElement
+        public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
+            List<TableRow> listTableRow = new ArrayList<>();
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(c.element());
+            JSONObject jsonObject = (JSONObject) obj;
+
+
+
+            Map<Object, Object> multimapStatusOrder = new HashMap<>();
+            multimapStatusOrder.put("order_number", jsonObject.get("order_id"));
+            multimapStatusOrder.put("source", "newstore");
+            multimapStatusOrder.put("type", "order");
+            multimapStatusOrder.put("status", jsonObject.get("status_label"));
+            multimapStatusOrder.put("updated_at", timeStampNow);
+            JSONObject multimapStatusOrderToBigQuery = new JSONObject(multimapStatusOrder);
+            TableRow tableRowStatusOrder = convertJsonToTableRow(String.valueOf(multimapStatusOrderToBigQuery));
+
+            listTableRow.add(tableRowStatusOrder);
+
+            Map<Object, Object> multimapStatusPayment = new HashMap<>();
+            multimapStatusPayment.put("order_number", jsonObject.get("order_id"));
+            multimapStatusPayment.put("source", "newstore");
+            multimapStatusPayment.put("type", "payment");
+            JSONArray paymentArray = (JSONArray) jsonObject.get("payments");
+            for (Object o : paymentArray) {
+                JSONObject payment = (JSONObject) o;
+                multimapStatusPayment.put("status", payment.get("status_label").toString().toLowerCase());
+
+            }
+            multimapStatusPayment.put("updated_at", timeStampNow);
+            JSONObject multimapStatusPaymentToBigQuery = new JSONObject(multimapStatusPayment);
+            TableRow tableRowStatusPayment = convertJsonToTableRow(String.valueOf(multimapStatusPaymentToBigQuery));
+
+            listTableRow.add(tableRowStatusPayment);
+
+            for (TableRow tableRow : listTableRow) {
+                c.output(tableRow);
+            }
+        }
+    }
+
+    public static class mapOrderStatusError extends DoFn<TableRow, TableRow> {
+
+        @ProcessElement
+        public void processElement(ProcessContext c) throws Exception {
+            if(c.element().get("type").toString().equals("payment") && c.element().get("status").toString().equals("voided")) {
+                TableRow TableRowOrderStatusError = new TableRow();
+                TableRowOrderStatusError.set("order_number", c.element().get("order_number"));
+                TableRowOrderStatusError.set("error_type", "payment_failure");
+                TableRowOrderStatusError.set("source", "shopify");
+                TableRowOrderStatusError.set("updated_at", timeStampNow);
+                c.output(TableRowOrderStatusError);
+            }
+        }
+    }
+
+    public static class mapOrderStatusErrorNewStore extends DoFn<TableRow, TableRow> {
+
+        @ProcessElement
+        public void processElement(ProcessContext c) throws Exception {
+            if(c.element().get("type").toString().equals("payment") && c.element().get("status").toString().equals("pending")) {
+                TableRow TableRowOrderStatusError = new TableRow();
+                TableRowOrderStatusError.set("order_number", c.element().get("order_number"));
+                TableRowOrderStatusError.set("error_type", "payment_failure");
+                TableRowOrderStatusError.set("source", "newstore");
+                TableRowOrderStatusError.set("updated_at", timeStampNow);
+                c.output(TableRowOrderStatusError);
             }
         }
     }
