@@ -42,7 +42,7 @@ dependencies {
 //mainClassName="org.polleyg.TemplatePipelineOrders"
 
 task runTemplatePipelineDataToBigQueryShopify (type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineDataToBigQuery'
+    main = 'org.polleyg.TemplatePipelineDataToBigQueryShopify'
     classpath = sourceSets.main.runtimeClasspath
         args "--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
