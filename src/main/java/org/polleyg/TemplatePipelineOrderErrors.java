@@ -105,7 +105,6 @@ public class TemplatePipelineOrderErrors {
             }
             i++;
 
-//                System.out.println("ok dernière case");
 //            }
 //            for (Object o : jsonArrayGlobal) {
 //                JSONObject object = (JSONObject) o;
@@ -123,7 +122,7 @@ public class TemplatePipelineOrderErrors {
 //            System.out.println("ok mapDATA");
 //            System.out.println(c.element().toString());
 //            if(i == (c.element().size())){
-//                System.out.println("ok dernière case");
+//                System.out.println("ok derniere case");
 //            }
 //            i++;
             c.output(newTableRowErrorPlatform);
