@@ -96,16 +96,6 @@ public class TemplatePipelineDataToBigQueryShipHawk {
                 .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Shipment_trackings_pipeline_completed","shipment_trackings","shipment_id","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
-        // ********************************************   ORDER STATUS PAYMENT ERROR    ********************************************
-//            WriteResult writeResultOrderStatusError = rowsOrderStatus.apply("TRANSFORM DATA FOR ERROR", ParDo.of(new mapOrderStatusError()))
-//                .apply("WRITE DATA IN BIGQUERY ORDER STATUS TABLE", BigQueryIO.writeTableRows()
-//                        .to(String.format("%s:%s.order_errors", project,dataset))
-//                        .withCreateDisposition(CREATE_IF_NEEDED)
-//                        .withWriteDisposition(WRITE_APPEND)
-//                        .withSchema(getTableSchemaOrderErrors()));
-
-
-
         pipeline.run();
     }
 

@@ -41,8 +41,8 @@ public class TemplatePipelineDataToBigQueryNewStore {
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
 
-        //PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
-        PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/upload/missing_customer_info.json"));
+        PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
+        //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/upload/missing_customer_info.json"));
         //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookNewStoreOrder-07_02_2021_19_14_55.json"));
 
 
@@ -120,12 +120,6 @@ public class TemplatePipelineDataToBigQueryNewStore {
         void setInputFile(ValueProvider<String> value);
     }
 
-    public static class TransformRowToInteger extends DoFn<TableRow, Integer> {
-        @ProcessElement
-        public void processElement(ProcessContext c) {
-            c.output(1);
-        }
-    }
     public static class CountMessage extends DoFn<TableRow, PubsubMessage>{
         private String messageDone;
         private String table;

@@ -175,12 +175,6 @@ public class TemplatePipelineDataToBigQueryShopify {
         void setInputFile(ValueProvider<String> value);
     }
 
-    public static class TransformRowToInteger extends DoFn<TableRow, Integer> {
-        @ProcessElement
-        public void processElement(ProcessContext c) {
-            c.output(1);
-        }
-    }
     public static class CountMessage extends DoFn<TableRow, PubsubMessage>{
         private String messageDone;
         private String table;

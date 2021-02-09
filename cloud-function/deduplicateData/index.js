@@ -55,10 +55,10 @@ exports.deduplicateData = function() {
                             SELECT @firstAttribute, @secondAttribute,
                             MAX(updated_at) AS updated_at,
                             COUNT(*) AS counter FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.orders\`
-                            GROUP BY number, customer_id 
+                            GROUP BY @firstAttribute, @secondAttribute  
                             HAVING counter > 1)
                             SELECT * FROM redundant 
-                            WHERE d.customer_id = customer_id AND d.updated_at != updated_at)`;
+                            WHERE d.@firstAttribute = @firstAttribute AND d.@secondAttribute = @firstAttribute  AND d.updated_at != updated_at)`;
 
               // For all options, see https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query
               const options = {
