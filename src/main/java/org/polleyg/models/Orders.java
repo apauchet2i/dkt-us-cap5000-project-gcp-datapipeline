@@ -6,9 +6,7 @@ import com.google.api.services.bigquery.model.TableSchema;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import org.polleyg.utils.DateNow;
 import java.util.*;
 
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
@@ -37,10 +35,6 @@ public class Orders {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
-
             JSONObject customer = (JSONObject) jsonObject.get("customer");
             JSONObject shippingAddress = (JSONObject) jsonObject.get("shipping_address");
 
@@ -58,7 +52,7 @@ public class Orders {
             map.put("city", shippingAddress.get("city"));
             map.put("country", shippingAddress.get("country"));
             map.put("created_at", ((String) jsonObject.get("created_at")).substring(0, ((String) jsonObject.get("created_at")).length() - 6));
-            map.put("updated_at", timeStampNow);
+            map.put("updated_at", DateNow.dateNow());
             JSONObject jsonToBigQuery = new JSONObject(map);
             TableRow tableRow = convertJsonToTableRow(String.valueOf(jsonToBigQuery));
             c.output(tableRow);

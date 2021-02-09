@@ -6,9 +6,7 @@ import com.google.api.services.bigquery.model.TableSchema;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import org.polleyg.utils.DateNow;
 import java.util.*;
 
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
@@ -31,14 +29,10 @@ public class OrderSources {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
-
             Map<String, Object> mapOrderSources = new HashMap<>();
             mapOrderSources.put("order_number", jsonObject.get("name"));
             mapOrderSources.put("source","shopify");
-            mapOrderSources.put("updated_at", timeStampNow);
+            mapOrderSources.put("updated_at", DateNow.dateNow());
 
             JSONObject mapOrderSourcesToBigQuery = new JSONObject(mapOrderSources);
             TableRow tableRow = convertJsonToTableRow(String.valueOf(mapOrderSourcesToBigQuery));
@@ -58,6 +52,7 @@ public class OrderSources {
             Map<String, Object> mapOrderSources = new HashMap<>();
             mapOrderSources.put("order_number", jsonObject.get("order_id"));
             mapOrderSources.put("source","newstore");
+            mapOrderSources.put("updated_at", DateNow.dateNow());
 
             JSONObject mapOrderSourcesToBigQuery = new JSONObject(mapOrderSources);
             TableRow tableRow = convertJsonToTableRow(String.valueOf(mapOrderSourcesToBigQuery));
@@ -79,6 +74,7 @@ public class OrderSources {
             String[] splitOrderNumber = orderNumber.split("-");
             mapOrderSources.put("order_number",splitOrderNumber[0]);
             mapOrderSources.put("source","shiphawk");
+            mapOrderSources.put("updated_at", DateNow.dateNow());
 
             JSONObject mapOrderSourcesToBigQuery = new JSONObject(mapOrderSources);
             TableRow tableRow = convertJsonToTableRow(String.valueOf(mapOrderSourcesToBigQuery));

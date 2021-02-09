@@ -7,6 +7,7 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.polleyg.utils.DateNow;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -14,14 +15,7 @@ import java.util.*;
 
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
-/**
- * Do some randomness
- */
 public class OrderShipments {
-
-    static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-    static LocalDateTime now = LocalDateTime.now();
-    static String timeStampNow = dtf.format(now);
 
     public static TableSchema getTableSchemaOrderShipments() {
         List<TableFieldSchema> fields = new ArrayList<>();
@@ -43,21 +37,16 @@ public class OrderShipments {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
-
             JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
             Map<Object, Object> mapShipmentOrder = new HashMap<>();
             mapShipmentOrder.put("source","shopify");
             mapShipmentOrder.put("order_number",jsonObject.get("name"));
-            mapShipmentOrder.put("updated_at", timeStampNow);
+            mapShipmentOrder.put("updated_at", DateNow.dateNow());
 
             for (Object o : fulfillmentArray) {
                 JSONObject fulfillment = (JSONObject) o;
                 mapShipmentOrder.put("id", fulfillment.get("name"));
                 mapShipmentOrder.put("status", fulfillment.get("shipment_status"));
-
             }
 
             JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
@@ -87,7 +76,7 @@ public class OrderShipments {
             for (Object o : shipmentsArray) {
                 JSONObject shipment = (JSONObject) o;
                 mapShipmentOrder.put("order_number",jsonObject.get("external_order_id"));
-                mapShipmentOrder.put("updated_at", timeStampNow);
+                mapShipmentOrder.put("updated_at", DateNow.dateNow());
                // mapShipmentOrder.put("id", shipment.get("id")); // blocage value
                 mapShipmentOrder.put("id", "id value ?");
                 mapShipmentOrder.put("source","newstore");
@@ -115,10 +104,6 @@ public class OrderShipments {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
-
             Map<Object, Object> mapShipmentOrder = new HashMap<>();
             mapShipmentOrder.put("id", jsonObject.get("order_number"));
             mapShipmentOrder.put("source","shiphawk");
@@ -126,8 +111,7 @@ public class OrderShipments {
             String[] splitOrderNumber = orderNumber.split("-");
             mapShipmentOrder.put("order_number",splitOrderNumber[0]);
             mapShipmentOrder.put("status", jsonObject.get("status"));
-            mapShipmentOrder.put("updated_at", timeStampNow);
-
+            mapShipmentOrder.put("updated_at", DateNow.dateNow());
 
             JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
             TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
@@ -149,7 +133,7 @@ public class OrderShipments {
                 TableRowOrderShipmentsError.set("order_number", c.element().get("order_number"));
                 TableRowOrderShipmentsError.set("error_type", "delivery_failure");
                 TableRowOrderShipmentsError.set("source", "shopify");
-                TableRowOrderShipmentsError.set("updated_at", timeStampNow);
+                TableRowOrderShipmentsError.put("updated_at", DateNow.dateNow());
                 c.output(TableRowOrderShipmentsError);
             }
         }
@@ -165,7 +149,7 @@ public class OrderShipments {
                 TableRowOrderShipmentsError.set("order_number", c.element().get("order_number"));
                 TableRowOrderShipmentsError.set("error_type", "delivery_failure");
                 TableRowOrderShipmentsError.set("source", "shopify");
-                TableRowOrderShipmentsError.set("updated_at", timeStampNow);
+                TableRowOrderShipmentsError.put("updated_at", DateNow.dateNow());
                 c.output(TableRowOrderShipmentsError);
             }
         }
@@ -181,7 +165,7 @@ public class OrderShipments {
                 TableRowOrderShipmentsError.set("order_number", c.element().get("order_number"));
                 TableRowOrderShipmentsError.set("error_type", "delivery_failure");
                 TableRowOrderShipmentsError.set("source", "shiphawk");
-                TableRowOrderShipmentsError.set("updated_at", timeStampNow);
+                TableRowOrderShipmentsError.set("updated_at", DateNow.dateNow());
                 c.output(TableRowOrderShipmentsError);
             }
         }

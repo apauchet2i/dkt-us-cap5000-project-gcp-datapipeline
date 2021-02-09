@@ -7,18 +7,13 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.polleyg.utils.DateNow;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
 public class ShipmentTrackings {
-
-    static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-    static LocalDateTime now = LocalDateTime.now();
-    static String timeStampNow = dtf.format(now);
 
     public static TableSchema getTableSchemaShipmentTrackings() {
         List<TableFieldSchema> fields = new ArrayList<>();
@@ -39,7 +34,6 @@ public class ShipmentTrackings {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-
             JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
             Map<Object, Object> mapShipmentOrder = new HashMap<>();
             mapShipmentOrder.put("source", "shopify");
@@ -59,7 +53,7 @@ public class ShipmentTrackings {
                 } else {
                     mapShipmentOrder.put("tracking_link", "null");
                 }
-                mapShipmentOrder.put("updated_at", timeStampNow);
+                mapShipmentOrder.put("updated_at", DateNow.dateNow());
             }
 
             JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
@@ -84,13 +78,13 @@ public class ShipmentTrackings {
             JSONArray packageArray = (JSONArray) jsonObject.get("packages");
             Map<Object, Object> mapShipmentOrder = new HashMap<>();
 
-
             for (Object o : packageArray) {
                 JSONObject packages = (JSONObject) o;
                 mapShipmentOrder.put("shipment_id", jsonObject.get("order_number"));
                 mapShipmentOrder.put("source", "shiphawk");
                 mapShipmentOrder.put("tracking_id", packages.get("tracking_number"));
                 mapShipmentOrder.put("tracking_link", packages.get("tracking_url"));
+                mapShipmentOrder.put("updated_at", DateNow.dateNow());
             }
 
             JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
@@ -111,7 +105,6 @@ public class ShipmentTrackings {
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
-
             JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
 
             for (Object o : fulfillmentArray) {
@@ -119,15 +112,13 @@ public class ShipmentTrackings {
                 JSONArray trackingNumbers = (JSONArray) fulfillment.get("tracking_numbers");
 
                 if (fulfillment.get("tracking_numbers") == null && trackingNumbers.size() == 0) {
-
                     TableRow TableRowOrderStatusError = new TableRow();
                     TableRowOrderStatusError.set("order_number", jsonObject.get("name"));
                     TableRowOrderStatusError.set("error_type", "tracking_number_error");
                     TableRowOrderStatusError.set("source", "shopify");
-                    TableRowOrderStatusError.set("updated_at", timeStampNow);
+                    TableRowOrderStatusError.set("updated_at", DateNow.dateNow());
                     c.output(TableRowOrderStatusError);
                     listTableRow.add(TableRowOrderStatusError);
-
                 }
             }
             for (TableRow tableRow : listTableRow) {
@@ -164,7 +155,7 @@ public class ShipmentTrackings {
                 TableRowOrderStatusError.set("order_number", splitOrderNumber[0]);
                 TableRowOrderStatusError.set("error_type", "tracking_number_error");
                 TableRowOrderStatusError.set("source", "shiphawk");
-                TableRowOrderStatusError.set("updated_at", timeStampNow);
+                TableRowOrderStatusError.set("updated_at", DateNow.dateNow());
                 c.output(TableRowOrderStatusError);
             }
 

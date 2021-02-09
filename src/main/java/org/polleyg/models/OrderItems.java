@@ -7,6 +7,8 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.polleyg.utils.DateNow;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -36,10 +38,6 @@ public class OrderItems {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
-
             JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
             Map<Object, Object> mapOrderItems = new HashMap<>();
 
@@ -54,13 +52,12 @@ public class OrderItems {
                     mapOrderItems.put("name", item.get("name"));
                     mapOrderItems.put("price", item.get("price"));
                     mapOrderItems.put("quantity", item.get("quantity"));
-                    mapOrderItems.put("updated_at", timeStampNow);
+                    mapOrderItems.put("updated_at", DateNow.dateNow());
                     JSONObject mapOrderItemsToBigQuery = new JSONObject(mapOrderItems);
                     TableRow tableRowOrderItems = convertJsonToTableRow(String.valueOf(mapOrderItemsToBigQuery));
                     listTableRow.add(tableRowOrderItems);
                 }
             }
-
             for (TableRow tableRow : listTableRow) {
                 c.output(tableRow);
             }
@@ -76,10 +73,6 @@ public class OrderItems {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
-
             JSONArray orderedProductsArray = (JSONArray) jsonObject.get("ordered_products");
             Map<Object, Object> mapOrderItems = new HashMap<>();
 
@@ -92,11 +85,14 @@ public class OrderItems {
                 mapOrderItems.put("name", orderedProduct.get("name"));
                 mapOrderItems.put("price", orderedProduct.get("price"));
                 mapOrderItems.put("quantity", orderedProduct.get("quantity"));
-                mapOrderItems.put("updated_at", timeStampNow);
+                mapOrderItems.put("updated_at", DateNow.dateNow());
+                JSONObject mapOrderItemsToBigQuery = new JSONObject(mapOrderItems);
+                TableRow tableRowOrderItems = convertJsonToTableRow(String.valueOf(mapOrderItemsToBigQuery));
+                listTableRow.add(tableRowOrderItems);
+            }
 
-                for (TableRow tableRow : listTableRow) {
-                    c.output(tableRow);
-                }
+            for (TableRow tableRow : listTableRow) {
+                c.output(tableRow);
             }
         }
     }
@@ -110,10 +106,6 @@ public class OrderItems {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
-
             JSONArray shipmentLineItemsArray = (JSONArray) jsonObject.get("shipment_line_items");
             Map<Object, Object> mapOrderItems = new HashMap<>();
 
@@ -126,12 +118,11 @@ public class OrderItems {
                 mapOrderItems.put("shipment_id", shipmentIdWithPoint);
                 mapOrderItems.put("source", "shiphawk");
                 mapOrderItems.put("quantity", shipmentLineItem.get("quantity"));
-                mapOrderItems.put("updated_at", timeStampNow);
+                mapOrderItems.put("updated_at", DateNow.dateNow());
                 JSONObject mapOrderItemsToBigQuery = new JSONObject(mapOrderItems);
                 TableRow tableRowOrderItems = convertJsonToTableRow(String.valueOf(mapOrderItemsToBigQuery));
                 listTableRow.add(tableRowOrderItems);
                 }
-
             for (TableRow tableRow : listTableRow) {
                 c.output(tableRow);
             }

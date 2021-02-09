@@ -6,9 +6,7 @@ import com.google.api.services.bigquery.model.TableSchema;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import org.polleyg.utils.DateNow;
 import java.util.*;
 
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
@@ -32,17 +30,13 @@ public class Customer {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("YYYY-MM-dd'T'H:mm:ss", Locale.getDefault());
-            LocalDateTime now = LocalDateTime.now();
-            String timeStampNow = dtf.format(now);
-
             JSONObject customer = (JSONObject) jsonObject.get("customer");
 
             Map<String, Object> mapCustomer = new HashMap<>();
             mapCustomer.put("id", String.valueOf(customer.get("id")));
             mapCustomer.put("lastname", String.valueOf(customer.get("last_name")));
             mapCustomer.put("firstname", String.valueOf(customer.get("first_name")));
-            mapCustomer.put("updated_at", timeStampNow);
+            mapCustomer.put("updated_at", DateNow.dateNow());
 
             JSONObject mapCustomerToBigQuery = new JSONObject(mapCustomer);
 
@@ -66,6 +60,7 @@ public class Customer {
                 mapCustomerError.put("order_number", jsonObject.get("name"));
                 mapCustomerError.put("error_type", "missing_customer_info");
                 mapCustomerError.put("source", "shopify");
+                mapCustomerError.put("updated_at", DateNow.dateNow());
 
                 JSONObject mapCustomerToBigQuery = new JSONObject(mapCustomerError);
                 TableRow tableRow = convertJsonToTableRow(String.valueOf(mapCustomerToBigQuery));
