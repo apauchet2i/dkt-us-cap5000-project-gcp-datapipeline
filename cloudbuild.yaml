@@ -23,13 +23,19 @@ steps:
 # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
   id: function-deploy-createjob
-  args: ['functions', 'deploy', 'createJob', '--trigger-event=google.storage.object.finalize', '--stage-bucket=gs://dkt-us-cap5000-project-platform-newevent', '--trigger-resource=gs://dkt-us-cap5000-project-platform-newevent', '--runtime=nodejs12','--service-account=data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com']
+  args: ['functions', 'deploy', 'dkt-us-cap5000-project-datapipelinejob', '--trigger-event=google.storage.object.finalize', '--stage-bucket=gs://dkt-us-cap5000-project-platform-newevent', '--trigger-resource=gs://dkt-us-cap5000-project-platform-newevent', '--runtime=nodejs12','--service-account=data-collector@dkt-us-data-lake-a1xq.iam.gserviceaccount.com']
   dir: 'cloud-function/createJob'
   waitFor: ['build-dataflow-pipeline']
 
   # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
-  id: function-deploy-deduplicatedata
-  args: ['functions', 'deploy', 'deduplicateData', '--trigger-topic=dkt-us-cap5000-project-end-datapipeline', '--runtime=nodejs12']
-  dir: 'cloud-function/deduplicateData'
+  id: function-deploy-deduplicate-data-orders
+  args: ['functions', 'deploy', 'dkt-us-cap5000-project-deduplicate-data-orders', '--trigger-topic=dkt-us-cap5000-project-end-datapipeline', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateDataOrders'
+  waitFor: ['build-dataflow-pipeline']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-customers
+  args: ['functions', 'deploy', 'dkt-us-cap5000-project-deduplicate-data-customers', '--trigger-topic=dkt-us-cap5000-project-datapipeline-customers', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateDataCustomers'
   waitFor: ['build-dataflow-pipeline']

@@ -10,8 +10,8 @@ provider "google" {
   region = "us-central1"
 }
 
-resource "google_storage_bucket" "deploy-project-cap5000" {
-  name = "deploy-project-cap5000"
+resource "google_storage_bucket" "dkt-us-cap5000-project-deploy" {
+  name = "dkt-us-cap5000-project-deploy"
   storage_class = "REGIONAL"
   location  = "us-central1"
 }

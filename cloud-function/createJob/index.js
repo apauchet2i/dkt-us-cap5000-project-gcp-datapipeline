@@ -1,4 +1,3 @@
-//gcloud --project=grey-sort-challenge functions deploy goWithTheDataFlow --stage-bucket gs://batch-pipeline --trigger-bucket gs://batch-pipeline
 const google = require('googleapis');
 
 exports.createJob = function(file, context) {
@@ -45,11 +44,11 @@ exports.createJob = function(file, context) {
                 inputFile: `gs://${file.bucket}/${fileName}`
               },
               environment: {
-                tempLocation: "gs://deploy-project-cap5000/temp/shopify",
+                tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/shopify",
                 zone: "us-central1-f"
               },
-              jobName: 'pipelineDataToBigQuery' + new Date().getTime(),
-              gcsPath: 'gs://deploy-project-cap5000/template/pipelineDataToBigQueryShopify'
+              jobName: 'pipelineDataToBigQueryShopify' + new Date().getTime(),
+              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShopify'
             }
           }, function (err, response) {
             if (err) {
@@ -74,11 +73,11 @@ exports.createJob = function(file, context) {
                 inputFile: `gs://${file.bucket}/${fileName}`
               },
               environment: {
-                tempLocation: "gs://deploy-project-cap5000/temp/newstore",
+                tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/newstore",
                 zone: "us-central1-f"
               },
-              jobName: 'pipelineDataToBigQuery' + new Date().getTime(),
-              gcsPath: 'gs://deploy-project-cap5000/template/pipelineDataToBigQueryNewStore'
+              jobName: 'pipelineDataToBigQueryNewstore' + new Date().getTime(),
+              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryNewStore'
             }
           }, function (err, response) {
             if (err) {
@@ -103,11 +102,11 @@ exports.createJob = function(file, context) {
                 inputFile: `gs://${file.bucket}/${fileName}`
               },
               environment: {
-                tempLocation: "gs://deploy-project-cap5000/temp/shiphawk",
+                tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/shiphawk",
                 zone: "us-central1-f"
               },
-              jobName: 'pipelineDataToBigQuery' + new Date().getTime(),
-              gcsPath: 'gs://deploy-project-cap5000/template/pipelineDataToBigQueryShiphawk'
+              jobName: 'pipelineDataToBigQueryShiphawk' + new Date().getTime(),
+              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShiphawk'
             }
           }, function (err, response) {
             if (err) {
@@ -117,12 +116,9 @@ exports.createJob = function(file, context) {
           });
         });
       }
-
-
       });
   } else {
     console.log("Nothing to do here, ignoring.");
-    //callback();
   }
 
 

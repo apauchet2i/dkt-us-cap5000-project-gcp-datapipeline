@@ -5,7 +5,7 @@
   "license": "MIT",
   "devDependencies": {},
   "dependencies": {
-    "@google-cloud/bigquery": "^5.5.0",
+    "@google-cloud/bigquery": "4.7.0",
     "@google-cloud/pubsub": "2.8.0",
     "chai": "3.5.0",
     "co-mocha": "1.2.2",

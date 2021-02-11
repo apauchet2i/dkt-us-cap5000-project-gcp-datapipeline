@@ -26,21 +26,6 @@ dependencies {
 
 }
 
-//run {
-//    args = ["--project=dkt-us-data-lake-a1xq",
-//            "--runner=DataflowRunner",
-//            "--maxNumWorkers=5",
-//            "--numWorkers=1",
-//            "--region=us-central1",
-//            "--stagingLocation=gs://deploy-project-cap5000/staging",
-//            "--tempLocation=gs://deploy-project-cap5000/temp",
-//            "--templateLocation=gs://deploy-project-cap5000/template/pipeline",
-//            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-//            '--usePublicIps=false'
-//    ]
-//}
-//mainClassName="org.polleyg.TemplatePipelineOrders"
-
 task runTemplatePipelineDataToBigQueryShopify (type: JavaExec) {
     main = 'org.polleyg.TemplatePipelineDataToBigQueryShopify'
     classpath = sourceSets.main.runtimeClasspath
@@ -49,9 +34,9 @@ task runTemplatePipelineDataToBigQueryShopify (type: JavaExec) {
             "--maxNumWorkers=5",
             "--numWorkers=1",
             "--region=us-central1",
-            "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--tempLocation=gs://deploy-project-cap5000/temp/shopify",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineDataToBigQueryShopify",
+            "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/shopify",
+            "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/shopify",
+            "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShopify",
             '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
             '--usePublicIps=false'
 }
@@ -64,9 +49,9 @@ task runTemplatePipelineDataToBigQueryNewStore (type: JavaExec) {
             "--maxNumWorkers=5",
             "--numWorkers=1",
             "--region=us-central1",
-            "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--tempLocation=gs://deploy-project-cap5000/temp/newstore",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineDataToBigQueryNewStore",
+            "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/newstore",
+            "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/newstore",
+            "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryNewStore",
             '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
             '--usePublicIps=false'
 }
@@ -79,9 +64,9 @@ task runTemplatePipelineDataToBigQueryShipHawk (type: JavaExec) {
             "--maxNumWorkers=5",
             "--numWorkers=1",
             "--region=us-central1",
-            "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--tempLocation=gs://deploy-project-cap5000/tempshiphawk",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineDataToBigQueryShipHawk",
+            "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/shiphawk",
+            "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/shiphawk",
+            "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShipHawk",
             '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
             '--usePublicIps=false'
 }
@@ -100,5 +85,3 @@ task runTemplatePipelineOrderErrors (type: JavaExec) {
             '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
             '--usePublicIps=false'
 }
-
-
