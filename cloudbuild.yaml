@@ -38,4 +38,4 @@ steps:
   id: function-deploy-deduplicatedata-customers
   args: ['functions', 'deploy', 'dkt-us-cap5000-project-deduplicate-data-customers', '--trigger-topic=dkt-us-cap5000-project-datapipeline-customers', '--runtime=nodejs12']
   dir: 'cloud-function/deduplicateDataCustomers'
-  waitFor: ['function-deploy-deduplicatedata-customers']
+  waitFor: ['function-deploy-deduplicate-data-orders']
