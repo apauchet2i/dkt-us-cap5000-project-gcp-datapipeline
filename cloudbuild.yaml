@@ -32,10 +32,10 @@ steps:
   id: function-deploy-deduplicate-data-orders
   args: ['functions', 'deploy', 'dkt-us-cap5000-project-deduplicate-data-orders', '--trigger-topic=dkt-us-cap5000-project-end-datapipeline', '--runtime=nodejs12']
   dir: 'cloud-function/deduplicateDataOrders'
-  waitFor: ['build-dataflow-pipeline']
+  waitFor: ['function-deploy-createjob']
 
 - name: gcr.io/cloud-builders/gcloud
   id: function-deploy-deduplicatedata-customers
   args: ['functions', 'deploy', 'dkt-us-cap5000-project-deduplicate-data-customers', '--trigger-topic=dkt-us-cap5000-project-datapipeline-customers', '--runtime=nodejs12']
   dir: 'cloud-function/deduplicateDataCustomers'
-  waitFor: ['build-dataflow-pipeline']
+  waitFor: ['function-deploy-deduplicatedata-customers']
