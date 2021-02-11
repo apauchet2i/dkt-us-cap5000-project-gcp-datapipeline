@@ -1,4 +1,4 @@
-exports.deduplicateData = function() {
+exports.deduplicateDataOrders = function() {
 
     projectId = 'dkt-us-data-lake-a1xq';
     projectDataset = 'dkt_us_test_cap5000';

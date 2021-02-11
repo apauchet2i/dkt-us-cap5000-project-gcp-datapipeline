@@ -120,6 +120,4 @@ exports.createJob = function(file, context) {
   } else {
     console.log("Nothing to do here, ignoring.");
   }
-
-
 };
