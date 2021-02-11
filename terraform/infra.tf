@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "dkt-us-data-lake-a1xq-tfstate"
+    bucket = "dkt-us-cap5000-project-tfstate"
     prefix = "terraform/state"
   }
 }
