@@ -1,6 +1,6 @@
 const google = require('googleapis');
 
-exports.createJob = function(file, context) {
+exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
 
   console.log(`  Event: ${context.eventId}`);
   console.log(`  Event Type: ${context.eventType}`);
