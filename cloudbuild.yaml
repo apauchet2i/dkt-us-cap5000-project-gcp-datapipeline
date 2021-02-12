@@ -39,3 +39,9 @@ steps:
   args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataCustomers', '--trigger-topic=dkt-us-cap5000-project-datapipeline-customers', '--runtime=nodejs12']
   dir: 'cloud-function/deduplicateData'
   waitFor: ['function-deploy-deduplicate-data-orders']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-order-status
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataOrderStatus', '--trigger-topic=dkt-us-cap5000-project-datapipeline-order-status', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateData'
+  waitFor: ['function-deploy-deduplicatedata-customers']
