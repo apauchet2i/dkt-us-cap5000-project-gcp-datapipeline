@@ -10,6 +10,7 @@ import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
+import org.apache.beam.sdk.transforms.windowing.GlobalWindow;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
@@ -64,10 +65,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                         .withSchema(getTableSchemaOrder()));
         rowsOrders.apply(Wait.on(writeResultOrders.getFailedInserts()))
-                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardMinutes(1)))
-                        .triggering(AfterProcessingTime.pastFirstElementInPane()
-                                .plusDelayOf(Duration.standardMinutes(1)))
-                        .discardingFiredPanes())
+                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(60))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
@@ -79,10 +77,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaCustomer()));
         rowsCustomers.apply(Wait.on(writeResultCustomers.getFailedInserts()))
-                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardMinutes(1)))
-                        .triggering(AfterProcessingTime.pastFirstElementInPane()
-                                .plusDelayOf(Duration.standardMinutes(1)))
-                        .discardingFiredPanes())
+                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(60))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Customers_pipeline_completed","customers","id","lastname")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-customers"));
 
@@ -128,10 +123,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withSchema(getTableSchemaOrderStatus()));
 
         rowsOrderStatus.apply(Wait.on(writeResultOrderStatus.getFailedInserts()))
-                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardMinutes(1)))
-                        .triggering(AfterProcessingTime.pastFirstElementInPane()
-                                .plusDelayOf(Duration.standardMinutes(1)))
-                        .discardingFiredPanes())
+                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(60))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_status_pipeline_completed","order_status","order_number","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-status"));
 
