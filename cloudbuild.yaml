@@ -45,3 +45,27 @@ steps:
   args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataOrderStatus', '--trigger-topic=dkt-us-cap5000-project-datapipeline-order-status', '--runtime=nodejs12']
   dir: 'cloud-function/deduplicateData'
   waitFor: ['function-deploy-deduplicatedata-customers']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-order-items
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataOrderItems', '--trigger-topic=dkt-us-cap5000-project-datapipeline-order-items', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateData'
+  waitFor: ['function-deploy-deduplicatedata-order-status']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-order-shipments
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataOrderShipments', '--trigger-topic=dkt-us-cap5000-project-datapipeline-order-shipments', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateData'
+  waitFor: ['function-deploy-deduplicatedata-order-items']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-shipment-trackings
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataShipmentTrackings', '--trigger-topic=dkt-us-cap5000-project-datapipeline-shipment-trackings', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateData'
+  waitFor: ['function-deploy-deduplicatedata-order-shipments']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-order-sources
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataOrderSources', '--trigger-topic=dkt-us-cap5000-project-datapipeline-order-sources', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateData'
+  waitFor: ['function-deploy-deduplicatedata-shipment-trackings']

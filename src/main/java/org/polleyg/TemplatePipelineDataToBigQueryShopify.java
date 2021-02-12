@@ -8,6 +8,9 @@ import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
 import org.apache.beam.sdk.transforms.*;
+import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
+import org.apache.beam.sdk.transforms.windowing.FixedWindows;
+import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
@@ -15,6 +18,7 @@ import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
+import org.joda.time.Duration;
 import org.polleyg.models.Customer.*;
 import org.polleyg.models.Orders.*;
 import org.polleyg.models.OrderItems.*;
@@ -24,6 +28,7 @@ import org.polleyg.models.ShipmentTrackings.*;
 import org.polleyg.models.OrderSources.*;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
@@ -46,6 +51,10 @@ public class TemplatePipelineDataToBigQueryShopify {
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
 
+        PipelineOptionsFactory.register(TemplateOptions.class);
+        TemplateOptions options2 = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
+        Pipeline pipeline2 = Pipeline.create(options);
+
         PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
         //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/upload/missing_customer_info.json"));
         //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-21_01_2021_21_17_48.json"));
@@ -56,8 +65,10 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.orders", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
+                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                         .withSchema(getTableSchemaOrder()));
         rowsOrders.apply(Wait.on(writeResultOrders.getFailedInserts()))
+                .apply(Window.into(FixedWindows.of(Duration.millis(5000))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
@@ -69,6 +80,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaCustomer()));
         rowsCustomers.apply(Wait.on(writeResultCustomers.getFailedInserts()))
+                .apply(Window.into(FixedWindows.of(Duration.millis(5000))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Customers_pipeline_completed","customers","id","lastname")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-customers"));
 
@@ -114,6 +126,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withSchema(getTableSchemaOrderStatus()));
 
         rowsOrderStatus.apply(Wait.on(writeResultOrderStatus.getFailedInserts()))
+                .apply(Window.into(FixedWindows.of(Duration.millis(5000))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_status_pipeline_completed","order_status","order_number","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-status"));
 
@@ -164,7 +177,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withWriteDisposition(WRITE_APPEND)
                         .withSchema(getTableSchemaOrderErrors()));
 
-        pipeline.run();
+        pipeline.run().waitUntilFinish();
     }
 
 

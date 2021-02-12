@@ -142,7 +142,7 @@ exports.dktUsCap5000ProjectDeduplicateDataOrderStatus = function() {
     async function query() {
         console.log("begin function");
 
-        const sqlQuery = `DELETE FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.order_status\` d WHERE EXISTS (WITH redundant AS (SELECT order_number, source, MAX(updated_at) AS updated_at, COUNT(*) AS counter FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.orders\` GROUP BY order_number, source HAVING counter > 1) SELECT * FROM redundant WHERE d.order_number=order_number AND d.source=source AND d.updated_at != updated_at)`;
+        const sqlQuery = `DELETE FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.order_status\` d WHERE EXISTS (WITH redundant AS (SELECT order_number, source, MAX(updated_at) AS updated_at, COUNT(*) AS counter FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.orders_status\` GROUP BY order_number, source HAVING counter > 1) SELECT * FROM redundant WHERE d.order_number=order_number AND d.source=source AND d.updated_at != updated_at)`;
 
         // For all options, see https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query
         const options = {
