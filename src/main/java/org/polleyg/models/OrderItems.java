@@ -29,6 +29,39 @@ public class OrderItems {
         return new TableSchema().setFields(fields);
     }
 
+    public static class TransformJsonParDoOrderItemsShopifyList extends DoFn<String, List<TableRow>> {
+
+        @ProcessElement
+        public void mapJsonToBigQueryTableShopifyList(ProcessContext c) throws Exception {
+            List<TableRow> listTableRow = new ArrayList<>();
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(c.element());
+            JSONObject jsonObject = (JSONObject) obj;
+
+            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
+            Map<Object, Object> mapOrderItems = new HashMap<>();
+
+            for (Object fulfillments : fulfillmentArray) {
+                JSONObject fulfillment = (JSONObject) fulfillments;
+                JSONArray itemsArray = (JSONArray) fulfillment.get("line_items");
+                for (Object items : itemsArray) {
+                    JSONObject item = (JSONObject) items;
+                    mapOrderItems.put("id", item.get("sku"));
+                    mapOrderItems.put("shipment_id", fulfillment.get("name"));
+                    mapOrderItems.put("source", "shopify");
+                    mapOrderItems.put("name", item.get("name"));
+                    mapOrderItems.put("price", item.get("price"));
+                    mapOrderItems.put("quantity", item.get("quantity"));
+                    mapOrderItems.put("updated_at", DateNow.dateNow());
+                    JSONObject mapOrderItemsToBigQuery = new JSONObject(mapOrderItems);
+                    TableRow tableRowOrderItems = convertJsonToTableRow(String.valueOf(mapOrderItemsToBigQuery));
+                    listTableRow.add(tableRowOrderItems);
+                }
+            }
+                c.output(listTableRow);
+        }
+    }
+
     public static class TransformJsonParDoOrderItemsShopify extends DoFn<String, TableRow> {
 
         @ProcessElement

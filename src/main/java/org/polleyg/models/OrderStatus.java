@@ -27,6 +27,59 @@ public class OrderStatus {
         return new TableSchema().setFields(fields);
     }
 
+    public static class TransformJsonParDoOrderStatusShopifyList extends DoFn<String, List<TableRow>> {
+
+        @ProcessElement
+        public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
+            List<TableRow> listTableRow = new ArrayList<>();
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(c.element());
+            JSONObject jsonObject = (JSONObject) obj;
+
+            Map<Object, Object> mapOrderStatus = new HashMap<>();
+            mapOrderStatus.put("order_number", jsonObject.get("name"));
+            mapOrderStatus.put("source", "shopify");
+            mapOrderStatus.put("type", "order");
+            if(jsonObject.get("cancelled_at") != null) {
+                mapOrderStatus.put("status", "cancelled");
+            }
+            else if(jsonObject.get("closed_at") != null){
+                mapOrderStatus.put("status", "closed");
+            }
+            else{
+                mapOrderStatus.put("status", "opened");
+            }
+            mapOrderStatus.put("updated_at", DateNow.dateNow());
+            JSONObject mapStatusOrderToBigQuery = new JSONObject(mapOrderStatus);
+            TableRow tableRowStatusOrder = convertJsonToTableRow(String.valueOf(mapStatusOrderToBigQuery));
+
+            listTableRow.add(tableRowStatusOrder);
+
+            Map<Object, Object> mapFulfillmentStatus = new HashMap<>();
+            mapFulfillmentStatus.put("order_number", jsonObject.get("name"));
+            mapFulfillmentStatus.put("source", "shopify");
+            mapFulfillmentStatus.put("type", "fulfillment");
+            mapFulfillmentStatus.put("status", jsonObject.get("fulfillment_status"));
+            mapFulfillmentStatus.put("updated_at", DateNow.dateNow());
+            JSONObject mapStatusFulfillmentToBigQuery = new JSONObject(mapFulfillmentStatus);
+            TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapStatusFulfillmentToBigQuery));
+
+            listTableRow.add(tableRowStatusFulfillment);
+
+            Map<Object, Object> mapPaymentStatus = new HashMap<>();
+            mapPaymentStatus.put("order_number", jsonObject.get("name"));
+            mapPaymentStatus.put("source", "shopify");
+            mapPaymentStatus.put("type", "payment");
+            mapPaymentStatus.put("status", jsonObject.get("financial_status"));
+            mapPaymentStatus.put("updated_at", DateNow.dateNow());
+            JSONObject mapStatusPaymentToBigQuery = new JSONObject(mapPaymentStatus);
+            TableRow tableRowStatusPayment = convertJsonToTableRow(String.valueOf(mapStatusPaymentToBigQuery));
+
+            listTableRow.add(tableRowStatusPayment);
+            c.output(listTableRow);
+        }
+    }
+
     public static class TransformJsonParDoOrderStatusShopify extends DoFn<String, TableRow> {
 
         @ProcessElement

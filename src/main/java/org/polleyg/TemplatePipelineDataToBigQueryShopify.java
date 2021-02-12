@@ -91,15 +91,16 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withSchema(getTableSchemaOrderErrors()));
 
         // ********************************************   ORDER ITEMS TABLE   ********************************************
+        PCollection<List<TableRow>> rowsOrderItemsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new TransformJsonParDoOrderItemsShopifyList()));
         PCollection<TableRow> rowsOrderItems = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new TransformJsonParDoOrderItemsShopify()));
         WriteResult writeResultOrderItems = rowsOrderItems.apply("WRITE DATA IN BIGQUERY ORDER ITEMS TABLE", BigQueryIO.writeTableRows()
                 .to(String.format("%s:%s.order_items", project,dataset))
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderItems()));
-//        rowsOrderItems.apply(Wait.on(writeResultOrderItems.getFailedInserts()))
-//                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_items_pipeline_completed","order_items","shipment_id","source")))
-//                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        rowsOrderItemsList.apply(Wait.on(writeResultOrderItems.getFailedInserts()))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_items_pipeline_completed","order_items","shipment_id","source")))
+                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-order-items"));
 
         // ********************************************   ORDER SOURCES TABLE   ********************************************
         PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new TransformJsonParDoOrderSourcesShopify()));
@@ -108,13 +109,13 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderSources()));
-//        rowsOrderSources.apply(Wait.on(writeResultOrderSources.getFailedInserts()))
-//                // Transforms each row inserted to an Integer of value 1
-//
-//                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_sources_pipeline_completed","order_sources","order_number","source")))
-//                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        rowsOrderSources.apply(Wait.on(writeResultOrderSources.getFailedInserts()))
+
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_sources_pipeline_completed","order_sources","order_number","source")))
+                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-sources"));
 
         // ********************************************   ORDER STATUS TABLE   ********************************************
+        PCollection<List<TableRow>> rowOrderStatusList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new TransformJsonParDoOrderStatusShopifyList()));
         PCollection<TableRow> rowsOrderStatus = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new TransformJsonParDoOrderStatusShopify()));
         WriteResult writeResultOrderStatus = rowsOrderStatus.apply("WRITE DATA IN BIGQUERY ORDER STATUS TABLE", BigQueryIO.writeTableRows()
                 .to(String.format("%s:%s.order_status", project,dataset))
@@ -122,9 +123,9 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderStatus()));
 
-        rowsOrderStatus.apply(Wait.on(writeResultOrderStatus.getFailedInserts()))
-                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(60))))
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_status_pipeline_completed","order_status","order_number","source")))
+        rowOrderStatusList.apply(Wait.on(writeResultOrderStatus.getFailedInserts()))
+                .apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(60))))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_status_pipeline_completed","order_status","order_number","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-status"));
 
         // ********************************************   ORDER STATUS PAYMENT ERROR    ********************************************
@@ -136,15 +137,16 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withSchema(getTableSchemaOrderErrors()));
 
         // ********************************************   ORDER SHIPMENTS TABLE   ********************************************
+        PCollection<List<TableRow>> rowsOrderShipmentsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new TransformJsonParDoOrderShipmentsShopifyList()));
         PCollection<TableRow> rowsOrderShipments = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new TransformJsonParDoOrderShipmentsShopify()));
         WriteResult writeResultOrderShipments = rowsOrderShipments.apply("WRITE DATA IN BIGQUERY ORDER SHIPMENTS TABLE", BigQueryIO.writeTableRows()
                 .to(String.format("%s:%s.order_shipments", project,dataset))
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderShipments()));
-//        rowsOrderShipments.apply(Wait.on(writeResultOrderShipments.getFailedInserts()))
-//                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_shipments_pipeline_completed","order_shipments","id","source")))
-//                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        rowsOrderShipmentsList.apply(Wait.on(writeResultOrderShipments.getFailedInserts()))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_shipments_pipeline_completed","order_shipments","id","source")))
+                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-shipments"));
 
         // ********************************************   ORDER SHIPMENTS ERROR    ********************************************
         WriteResult writeResultOrderShipmentsError = rowsOrderShipments.apply("TRANSFORM DATA FOR ERROR", ParDo.of(new mapOrderShipmentsError()))
@@ -155,15 +157,16 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withSchema(getTableSchemaOrderErrors()));
 
         // ********************************************   SHIPMENT TRACKINGS TABLE   ********************************************
+        PCollection<List<TableRow>> rowsShipmentTrackingsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new TransformJsonParDoShipmentTrackingsShopifyList()));
         PCollection<TableRow> rowsShipmentTrackings = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW SHIPMENT TRACKINGS", ParDo.of(new TransformJsonParDoShipmentTrackingsShopify()));
         WriteResult writeResultShipmentTrackings = rowsShipmentTrackings.apply("WRITE DATA IN BIGQUERY SHIPMENT TRACKINGS TABLE", BigQueryIO.writeTableRows()
                 .to(String.format("%s:%s.shipment_trackings", project,dataset))
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaShipmentTrackings()));
-//        rowsShipmentTrackings.apply(Wait.on(writeResultShipmentTrackings.getFailedInserts()))
-//                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Shipment_trackings_pipeline_completed","shipment_trackings","shipment_id","source")))
-//                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        rowsShipmentTrackingsList.apply(Wait.on(writeResultShipmentTrackings.getFailedInserts()))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Shipment_trackings_pipeline_completed","shipment_trackings","shipment_id","source")))
+                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-shipment-trackings"));
 
         // ********************************************   SHIPMENT TRACKINGS ERROR   ********************************************
         PCollection<TableRow> rowsShipmentTrackingsError = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new mapShipmentTrackingErrorShopify()));
@@ -192,6 +195,30 @@ public class TemplatePipelineDataToBigQueryShopify {
         private String secondDistinctColon;
 
         public CountMessage(String messageDone, String table, String firstDistinctColon, String secondDistinctColon) {
+            this.messageDone = messageDone;
+            this.table = table;
+            this.firstDistinctColon = firstDistinctColon;
+            this.secondDistinctColon = secondDistinctColon;
+
+        }
+        @ProcessElement
+        public void processElement(ProcessContext c) {
+            Map<String, String> attributes = new HashMap<>();
+            attributes.put("table", table);
+            attributes.put("first_distinct_colon", firstDistinctColon);
+            attributes.put("second_distinct_colon", secondDistinctColon);
+            PubsubMessage message = new PubsubMessage(messageDone.getBytes(), attributes);
+            c.output(message);
+        }
+    }
+
+    public static class CountMessageList extends DoFn<List<TableRow>, PubsubMessage>{
+        private String messageDone;
+        private String table;
+        private String firstDistinctColon;
+        private String secondDistinctColon;
+
+        public CountMessageList(String messageDone, String table, String firstDistinctColon, String secondDistinctColon) {
             this.messageDone = messageDone;
             this.table = table;
             this.firstDistinctColon = firstDistinctColon;
