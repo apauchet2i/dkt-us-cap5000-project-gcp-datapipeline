@@ -65,7 +65,7 @@ public class TemplatePipelineDataToBigQueryShopify {
         final PCollection<Void> afterSingleton = rowsOrders
                 .apply("singleton#task", ParDo.of(new DoFn<TableRow, Void>() {
                     @ProcessElement  // (3)
-                    public void onElement(@Element final String input, final OutputReceiver<Void> output) {
+                    public void onElement(final OutputReceiver<Void> output) {
                         WriteResult writeResultOrders = rowsOrders.apply("WRITE DATA IN BIGQUERY ORDERS TABLE", BigQueryIO.writeTableRows()
                                 .to(String.format("%s:%s.orders", project,dataset))
                                 .withCreateDisposition(CREATE_IF_NEEDED)
