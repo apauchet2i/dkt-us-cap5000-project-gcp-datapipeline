@@ -52,20 +52,45 @@ public class TemplatePipelineDataToBigQueryShopify {
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
 
+        PipelineOptionsFactory.register(TemplateOptions.class);
+        TemplateOptions options2 = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
+        Pipeline pipeline2 = Pipeline.create(options2);
+
         PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
         //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/upload/missing_customer_info.json"));
         //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-21_01_2021_21_17_48.json"));
 
-        // ********************************************   ORDERS TABLE   ********************************************
+        final PCollection<String> pCollectionDataJson2 = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
         PCollection<TableRow> rowsOrders = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDERS", ParDo.of(new TransformJsonParDoOrders()));
-        WriteResult writeResultOrders = rowsOrders.apply("WRITE DATA IN BIGQUERY ORDERS TABLE", BigQueryIO.writeTableRows()
-                        .to(String.format("%s:%s.orders", project,dataset))
-                        .withCreateDisposition(CREATE_IF_NEEDED)
-                        .withWriteDisposition(WRITE_APPEND)
-                        .withSchema(getTableSchemaOrder()));
-        rowsOrders.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(50))))
-        .apply("FORMAT MESSAGE ORDERS", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")))
-        .apply("WRITE PUB MESSAGE CUSTOMERS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        final PCollection<Void> afterSingleton = pCollectionDataJson2
+                .apply("singleton#first", Sample.any(1)) // (2)
+                .apply("singleton#task", ParDo.of(new DoFn<String, Void>() {
+                    @ProcessElement  // (3)
+                    public void onElement(@Element final String input, final OutputReceiver<Void> output) {
+                        WriteResult writeResultOrders = rowsOrders.apply("WRITE DATA IN BIGQUERY ORDERS TABLE", BigQueryIO.writeTableRows()
+                                .to(String.format("%s:%s.orders", project,dataset))
+                                .withCreateDisposition(CREATE_IF_NEEDED)
+                                .withWriteDisposition(WRITE_APPEND)
+                                .withSchema(getTableSchemaOrder()));
+                        output.output(null);
+                    }
+                }));
+        pCollectionDataJson2
+                .apply("output#synchro", Wait.on(afterSingleton)) // (4)
+                .apply("FORMAT MESSAGE ORDERS", ParDo.of(new CountMessageTest("Orders_pipeline_completed","orders","number","customer_id")))
+                .apply("WRITE PUB MESSAGE CUSTOMERS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+
+
+        // ********************************************   ORDERS TABLE   ********************************************
+//        PCollection<TableRow> rowsOrders = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDERS", ParDo.of(new TransformJsonParDoOrders()));
+//        WriteResult writeResultOrders = rowsOrders.apply("WRITE DATA IN BIGQUERY ORDERS TABLE", BigQueryIO.writeTableRows()
+//                        .to(String.format("%s:%s.orders", project,dataset))
+//                        .withCreateDisposition(CREATE_IF_NEEDED)
+//                        .withWriteDisposition(WRITE_APPEND)
+//                        .withSchema(getTableSchemaOrder()));
+//        rowsOrders.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(50))))
+//        .apply("FORMAT MESSAGE ORDERS", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")))
+//        .apply("WRITE PUB MESSAGE CUSTOMERS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   CUSTOMERS TABLE   ********************************************
         PCollection<TableRow> rowsCustomers = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new TransformJsonParDoCustomer()));
@@ -171,7 +196,9 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withWriteDisposition(WRITE_APPEND)
                         .withSchema(getTableSchemaOrderErrors()));
 
-        pipeline.run();
+        pipeline.run().waitUntilFinish();
+
+
     }
 
 
@@ -189,6 +216,30 @@ public class TemplatePipelineDataToBigQueryShopify {
         private String secondDistinctColon;
 
         public CountMessage(String messageDone, String table, String firstDistinctColon, String secondDistinctColon) {
+            this.messageDone = messageDone;
+            this.table = table;
+            this.firstDistinctColon = firstDistinctColon;
+            this.secondDistinctColon = secondDistinctColon;
+
+        }
+        @ProcessElement
+        public void processElement(ProcessContext c) {
+            Map<String, String> attributes = new HashMap<>();
+            attributes.put("table", table);
+            attributes.put("first_distinct_colon", firstDistinctColon);
+            attributes.put("second_distinct_colon", secondDistinctColon);
+            PubsubMessage message = new PubsubMessage(messageDone.getBytes(), attributes);
+            c.output(message);
+        }
+    }
+
+    public static class CountMessageTest extends DoFn<String, PubsubMessage>{
+        private String messageDone;
+        private String table;
+        private String firstDistinctColon;
+        private String secondDistinctColon;
+
+        public CountMessageTest(String messageDone, String table, String firstDistinctColon, String secondDistinctColon) {
             this.messageDone = messageDone;
             this.table = table;
             this.firstDistinctColon = firstDistinctColon;
