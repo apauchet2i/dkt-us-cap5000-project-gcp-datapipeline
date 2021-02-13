@@ -62,11 +62,10 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.orders", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                         .withSchema(getTableSchemaOrder()));
-        rowsOrders.apply(Wait.on(writeResultOrders.getFailedInserts()));
-        rowsOrders.apply("FORMAT MESSAGE ORDERS", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")));
-        PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline");
+        rowsOrders.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(50))))
+        .apply("FORMAT MESSAGE ORDERS", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")))
+        .apply("WRITE PUB MESSAGE CUSTOMERS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   CUSTOMERS TABLE   ********************************************
         PCollection<TableRow> rowsCustomers = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new TransformJsonParDoCustomer()));
