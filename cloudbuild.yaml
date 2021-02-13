@@ -30,6 +30,30 @@ steps:
   # 4b. Deploy the Cloud Function that listens to the bucket
 - name: gcr.io/cloud-builders/gcloud
   id: function-deploy-deduplicate-data-orders
-  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateData', '--trigger-topic=dkt-us-cap5000-project-end-datapipeline', '--runtime=nodejs12']
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataOrders', '--trigger-topic=dkt-us-cap5000-project-end-datapipeline', '--runtime=nodejs12']
   dir: 'cloud-function/deduplicateData'
   waitFor: ['function-deploy-createjob']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-customers
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataCustomers', '--trigger-topic=dkt-us-cap5000-project-datapipeline-customers', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateData'
+  waitFor: ['function-deploy-deduplicate-data-orders']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-order-status
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataOrderStatus', '--trigger-topic=dkt-us-cap5000-project-datapipeline-order-status', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateData'
+  waitFor: ['function-deploy-deduplicatedata-customers']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-order-items
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataOrderItems', '--trigger-topic=dkt-us-cap5000-project-datapipeline-order-items', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateData'
+  waitFor: ['function-deploy-deduplicatedata-order-status']
+
+- name: gcr.io/cloud-builders/gcloud
+  id: function-deploy-deduplicatedata-order-shipments
+  args: ['functions', 'deploy', 'dktUsCap5000ProjectDeduplicateDataOrderShipments', '--trigger-topic=dkt-us-cap5000-project-datapipeline-order-shipments', '--runtime=nodejs12']
+  dir: 'cloud-function/deduplicateData'
+  waitFor: ['function-deploy-deduplicatedata-order-items']
