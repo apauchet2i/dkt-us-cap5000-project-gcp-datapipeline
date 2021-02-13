@@ -62,10 +62,9 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.orders", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                         .withSchema(getTableSchemaOrder()));
         rowsOrders.apply(Wait.on(writeResultOrders.getFailedInserts()))
-                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(60))))
+                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
@@ -76,8 +75,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaCustomer()));
-        rowsCustomers.apply(Wait.on(writeResultCustomers.getFailedInserts()))
-                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(60))))
+        rowsCustomers.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Customers_pipeline_completed","customers","id","lastname")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-customers"));
 
@@ -98,8 +96,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderItems()));
-        rowsOrderItemsList.apply(Wait.on(writeResultOrderItems.getFailedInserts()))
-                .apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(60))))
+        rowsOrderItemsList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_items_pipeline_completed","order_items","shipment_id","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-items"));
 
@@ -110,8 +107,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderSources()));
-        rowsOrderSources.apply(Wait.on(writeResultOrderSources.getFailedInserts()))
-                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(3))))
+        rowsOrderSources.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_sources_pipeline_completed","order_sources","order_number","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-sources"));
 
@@ -124,8 +120,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderStatus()));
 
-        rowOrderStatusList.apply(Wait.on(writeResultOrderStatus.getFailedInserts()))
-                .apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(60))))
+        rowOrderStatusList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_status_pipeline_completed","order_status","order_number","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-status"));
 
@@ -145,8 +140,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderShipments()));
-        rowsOrderShipmentsList.apply(Wait.on(writeResultOrderShipments.getFailedInserts()))
-                .apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(60))))
+        rowsOrderShipmentsList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_shipments_pipeline_completed","order_shipments","id","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-shipments"));
 
@@ -166,8 +160,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaShipmentTrackings()));
-        rowsShipmentTrackingsList.apply(Wait.on(writeResultShipmentTrackings.getFailedInserts()))
-                .apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(60))))
+        rowsShipmentTrackingsList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Shipment_trackings_pipeline_completed","shipment_trackings","shipment_id","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-shipment-trackings"));
 
