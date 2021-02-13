@@ -62,27 +62,26 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.orders", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
+                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                         .withSchema(getTableSchemaOrder()));
-        rowsOrders.apply(Wait.on(writeResultOrders.getFailedInserts()))
-                .apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(20))))
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")))
-                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        rowsOrders.apply(Wait.on(writeResultOrders.getFailedInserts()));
+        rowsOrders.apply("FORMAT MESSAGE ORDERS", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")));
+        PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline");
 
         // ********************************************   CUSTOMERS TABLE   ********************************************
         PCollection<TableRow> rowsCustomers = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new TransformJsonParDoCustomer()));
-        WriteResult writeResultCustomers = rowsCustomers.apply("WRITE DATA IN BIGQUERY CUSTOMERS TABLE", BigQueryIO.writeTableRows()
+        rowsCustomers.apply("WRITE DATA IN BIGQUERY CUSTOMERS TABLE", BigQueryIO.writeTableRows()
                 .to(String.format("%s:%s.customers", project,dataset))
-                .withCreateDisposition(CREATE_IF_NEEDED)
+                .optimizedWrites()
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaCustomer()));
         rowsCustomers.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(20))))
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Customers_pipeline_completed","customers","id","lastname")))
-                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-customers"));
+                .apply("FORMAT MESSAGE CUSTOMERS", ParDo.of(new CountMessage("Customers_pipeline_completed","customers","id","lastname")))
+                .apply("WRITE PUB MESSAGE CUSTOMERS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-customers"));
 
         // ********************************************   CUSTOMERS ERRORS   ********************************************
         PCollection<TableRow> rowsCustomersError = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new mapOrderCustomersError()));
-        WriteResult writeResultCustomersError = rowsCustomersError
-                .apply("WRITE DATA IN BIGQUERY ORDER STATUS TABLE", BigQueryIO.writeTableRows()
+        rowsCustomersError.apply("WRITE DATA IN BIGQUERY ORDER STATUS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_errors", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
@@ -91,14 +90,14 @@ public class TemplatePipelineDataToBigQueryShopify {
         // ********************************************   ORDER ITEMS TABLE   ********************************************
         PCollection<List<TableRow>> rowsOrderItemsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new TransformJsonParDoOrderItemsShopifyList()));
         PCollection<TableRow> rowsOrderItems = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new TransformJsonParDoOrderItemsShopify()));
-        WriteResult writeResultOrderItems = rowsOrderItems.apply("WRITE DATA IN BIGQUERY ORDER ITEMS TABLE", BigQueryIO.writeTableRows()
+        rowsOrderItems.apply("WRITE DATA IN BIGQUERY ORDER ITEMS TABLE", BigQueryIO.writeTableRows()
                 .to(String.format("%s:%s.order_items", project,dataset))
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderItems()));
         rowsOrderItemsList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(20))))
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_items_pipeline_completed","order_items","shipment_id","source")))
-                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-items"));
+                .apply("FORMAT MESSAGE ORDER ITEMS", ParDo.of(new CountMessageList("Order_items_pipeline_completed","order_items","shipment_id","source")))
+                .apply("WRITE PUB MESSAGE ORDER ITEMS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-items"));
 
         // ********************************************   ORDER SOURCES TABLE   ********************************************
         PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new TransformJsonParDoOrderSourcesShopify()));
@@ -108,8 +107,8 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderSources()));
         rowsOrderSources.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(20))))
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_sources_pipeline_completed","order_sources","order_number","source")))
-                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-sources"));
+                .apply("FORMAT MESSAGE ORDER SOURCES", ParDo.of(new CountMessage("Order_sources_pipeline_completed","order_sources","order_number","source")))
+                .apply("WRITE PUB MESSAGE ORDER SOURCES", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-sources"));
 
         // ********************************************   ORDER STATUS TABLE   ********************************************
         PCollection<List<TableRow>> rowOrderStatusList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new TransformJsonParDoOrderStatusShopifyList()));
@@ -121,8 +120,8 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withSchema(getTableSchemaOrderStatus()));
 
         rowOrderStatusList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(20))))
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_status_pipeline_completed","order_status","order_number","source")))
-                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-status"));
+                .apply("FORMAT MESSAGE ORDER STATUS", ParDo.of(new CountMessageList("Order_status_pipeline_completed","order_status","order_number","source")))
+                .apply("WRITE PUB MESSAGE ORDER STATUS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-status"));
 
         // ********************************************   ORDER STATUS PAYMENT ERROR    ********************************************
             WriteResult writeResultOrderStatusError = rowsOrderStatus.apply("TRANSFORM DATA FOR ERROR", ParDo.of(new mapOrderStatusError()))
@@ -141,7 +140,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderShipments()));
         rowsOrderShipmentsList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardSeconds(20))))
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_shipments_pipeline_completed","order_shipments","id","source")))
+                .apply("FORMAT MESSAGE ORDE", ParDo.of(new CountMessageList("Order_shipments_pipeline_completed","order_shipments","id","source")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-shipments"));
 
         // ********************************************   ORDER SHIPMENTS ERROR    ********************************************

@@ -3,12 +3,16 @@ package org.polleyg.models;
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
+import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.values.PCollection;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.polleyg.utils.DateNow;
 import java.util.*;
 
+import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
+import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
 
 public class Orders {
