@@ -62,9 +62,8 @@ public class TemplatePipelineDataToBigQueryShopify {
 
         final PCollection<String> pCollectionDataJson2 = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
         PCollection<TableRow> rowsOrders = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDERS", ParDo.of(new TransformJsonParDoOrders()));
-        final PCollection<Void> afterSingleton = pCollectionDataJson2
-                .apply("singleton#first", Sample.any(1)) // (2)
-                .apply("singleton#task", ParDo.of(new DoFn<String, Void>() {
+        final PCollection<Void> afterSingleton = rowsOrders
+                .apply("singleton#task", ParDo.of(new DoFn<TableRow, Void>() {
                     @ProcessElement  // (3)
                     public void onElement(@Element final String input, final OutputReceiver<Void> output) {
                         WriteResult writeResultOrders = rowsOrders.apply("WRITE DATA IN BIGQUERY ORDERS TABLE", BigQueryIO.writeTableRows()
