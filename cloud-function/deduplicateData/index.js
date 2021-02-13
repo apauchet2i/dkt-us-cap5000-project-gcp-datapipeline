@@ -1,7 +1,7 @@
 const google = require('googleapis');
 const {PubSub} = require('@google-cloud/pubsub');
 
-exports.deduplicateData = function() {
+exports.dktUsCap5000ProjectDeduplicateData = function() {
 
     projectId = 'dkt-us-data-lake-a1xq';
     projectDataset = 'dkt_us_test_cap5000';
