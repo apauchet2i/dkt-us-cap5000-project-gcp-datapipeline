@@ -100,7 +100,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withSchema(getTableSchemaOrderItems()));
         rowsOrderItemsList.apply(Wait.on(writeResultOrderItems.getFailedInserts()))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Order_items_pipeline_completed","order_items","shipment_id","source")))
-                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-order-items"));
+                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-items"));
 
         // ********************************************   ORDER SOURCES TABLE   ********************************************
         PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new TransformJsonParDoOrderSourcesShopify()));
@@ -166,7 +166,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withSchema(getTableSchemaShipmentTrackings()));
         rowsShipmentTrackingsList.apply(Wait.on(writeResultShipmentTrackings.getFailedInserts()))
                 .apply("COUNT MESSAGE", ParDo.of(new CountMessageList("Shipment_trackings_pipeline_completed","shipment_trackings","shipment_id","source")))
-                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-shipment-trackings"));
+                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-shipment-trackings"));
 
         // ********************************************   SHIPMENT TRACKINGS ERROR   ********************************************
         PCollection<TableRow> rowsShipmentTrackingsError = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new mapShipmentTrackingErrorShopify()));
