@@ -60,36 +60,16 @@ public class TemplatePipelineDataToBigQueryShopify {
         //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/upload/missing_customer_info.json"));
         //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShopify-21_01_2021_21_17_48.json"));
 
-        final PCollection<String> pCollectionDataJson2 = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
+         // ********************************************   ORDERS TABLE   ********************************************
         PCollection<TableRow> rowsOrders = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDERS", ParDo.of(new TransformJsonParDoOrders()));
-        final PCollection<Void> afterSingleton = rowsOrders
-                .apply("singleton#task", ParDo.of(new DoFn<TableRow, Void>() {
-                    @ProcessElement  // (3)
-                    public void onElement(final OutputReceiver<Void> output) {
-                        WriteResult writeResultOrders = rowsOrders.apply("WRITE DATA IN BIGQUERY ORDERS TABLE", BigQueryIO.writeTableRows()
-                                .to(String.format("%s:%s.orders", project,dataset))
-                                .withCreateDisposition(CREATE_IF_NEEDED)
-                                .withWriteDisposition(WRITE_APPEND)
-                                .withSchema(getTableSchemaOrder()));
-                        output.output(null);
-                    }
-                }));
-        pCollectionDataJson2
-                .apply("output#synchro", Wait.on(afterSingleton)) // (4)
-                .apply("FORMAT MESSAGE ORDERS", ParDo.of(new CountMessageTest("Orders_pipeline_completed","orders","number","customer_id")))
-                .apply("WRITE PUB MESSAGE CUSTOMERS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
-
-
-        // ********************************************   ORDERS TABLE   ********************************************
-//        PCollection<TableRow> rowsOrders = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDERS", ParDo.of(new TransformJsonParDoOrders()));
-//        WriteResult writeResultOrders = rowsOrders.apply("WRITE DATA IN BIGQUERY ORDERS TABLE", BigQueryIO.writeTableRows()
-//                        .to(String.format("%s:%s.orders", project,dataset))
-//                        .withCreateDisposition(CREATE_IF_NEEDED)
-//                        .withWriteDisposition(WRITE_APPEND)
-//                        .withSchema(getTableSchemaOrder()));
-//        rowsOrders.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(50))))
-//        .apply("FORMAT MESSAGE ORDERS", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")))
-//        .apply("WRITE PUB MESSAGE CUSTOMERS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        WriteResult writeResultOrders = rowsOrders.apply("WRITE DATA IN BIGQUERY ORDERS TABLE", BigQueryIO.writeTableRows()
+                        .to(String.format("%s:%s.orders", project,dataset))
+                        .withCreateDisposition(CREATE_IF_NEEDED)
+                        .withWriteDisposition(WRITE_APPEND)
+                        .withSchema(getTableSchemaOrder()));
+        rowsOrders.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardSeconds(50))))
+        .apply("FORMAT MESSAGE ORDERS", ParDo.of(new CountMessage("Orders_pipeline_completed","orders","number","customer_id")))
+        .apply("WRITE PUB MESSAGE CUSTOMERS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   CUSTOMERS TABLE   ********************************************
         PCollection<TableRow> rowsCustomers = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new TransformJsonParDoCustomer()));

@@ -63,8 +63,9 @@ exports.dktUsCap5000ProjectDeduplicateDataCustomers = function() {
         bigquery.query(options);
 
     }
-    listenForMessages();
-    query();
+    listenForMessages.then(function(result) {
+        query();
+    });
 };
 
 exports.dktUsCap5000ProjectDeduplicateDataOrderItems = function() {
