@@ -175,7 +175,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withWriteDisposition(WRITE_APPEND)
                         .withSchema(getTableSchemaOrderErrors()));
 
-        pipeline.run().waitUntilFinish();
+        pipeline.run();
 
 
     }
