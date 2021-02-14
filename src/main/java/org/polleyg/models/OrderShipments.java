@@ -154,6 +154,34 @@ public class OrderShipments {
         }
     }
 
+    public static class TransformJsonParDoOrderShipmentsShiphawkList extends DoFn<String, List<TableRow>> {
+
+        @ProcessElement
+        public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
+            List<TableRow> listTableRow = new ArrayList<>();
+            JSONParser parser = new JSONParser();
+
+            Object obj = parser.parse(c.element());
+            JSONObject jsonObject = (JSONObject) obj;
+
+            Map<Object, Object> mapShipmentOrder = new HashMap<>();
+            mapShipmentOrder.put("id", jsonObject.get("order_number"));
+            mapShipmentOrder.put("source","shiphawk");
+            String orderNumber = jsonObject.get("order_number").toString();
+            String[] splitOrderNumber = orderNumber.split("-");
+            mapShipmentOrder.put("order_number",splitOrderNumber[0]);
+            mapShipmentOrder.put("status", jsonObject.get("status"));
+            mapShipmentOrder.put("updated_at", DateNow.dateNow());
+
+            JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
+            TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
+            listTableRow.add(tableRowStatusFulfillment);
+
+            c.output(listTableRow);
+
+        }
+    }
+
     public static class mapOrderShipmentsError extends DoFn<TableRow, TableRow> {
 
         @ProcessElement

@@ -14,19 +14,23 @@ import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.Wait;
+import org.apache.beam.sdk.transforms.windowing.FixedWindows;
+import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.PCollection;
+import org.joda.time.Duration;
 import org.polleyg.models.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
-import static org.polleyg.models.OrderErrors.getTableSchemaOrderErrors;
-import static org.polleyg.models.OrderItems.getTableSchemaOrderItems;
-import static org.polleyg.models.OrderShipments.getTableSchemaOrderShipments;
-import static org.polleyg.models.OrderSources.getTableSchemaOrderSources;
-import static org.polleyg.models.ShipmentTrackings.getTableSchemaShipmentTrackings;
+import static org.polleyg.models.OrderErrors.*;
+import static org.polleyg.models.OrderItems.*;
+import static org.polleyg.models.OrderShipments.*;
+import static org.polleyg.models.OrderSources.*;
+import static org.polleyg.models.ShipmentTrackings.*;
 
 public class TemplatePipelineDataToBigQueryShipHawk {
     public static void main(String[] args) {
@@ -39,40 +43,47 @@ public class TemplatePipelineDataToBigQueryShipHawk {
         Pipeline pipeline = Pipeline.create(options);
 
         PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
-        //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/upload/missing_customer_info.json"));
-        //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookShiphawk-08_02_2021_09_51_11.json"));
-
 
         // ********************************************   ORDER SHIPMENTS TABLE   ********************************************
-        PCollection<TableRow> rowsOrderShipments = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new OrderShipments.TransformJsonParDoOrderShipmentsShiphawk()));
-        WriteResult writeResultOrderShipments = rowsOrderShipments.apply("WRITE DATA IN BIGQUERY ORDER STATUS TABLE", BigQueryIO.writeTableRows()
-                .to(String.format("%s:%s.order_shipments", project,dataset))
-                .withCreateDisposition(CREATE_IF_NEEDED)
-                .withWriteDisposition(WRITE_APPEND)
-                .withSchema(getTableSchemaOrderShipments()));
-
-        rowsOrderShipments.apply(Wait.on(writeResultOrderShipments.getFailedInserts()))
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_shipments_pipeline_completed","order_status","order_number","source")))
-                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        PCollection<List<TableRow>> rowsOrderShipmentsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new TransformJsonParDoOrderShipmentsShiphawkList()));
+        PCollection<TableRow> rowsOrderShipments = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new TransformJsonParDoOrderShipmentsShiphawk()));
+        rowsOrderShipments
+                .apply(Window.into(FixedWindows.of(Duration.standardSeconds(20))))
+                .apply("WRITE DATA IN BIGQUERY ORDER SHIPMENTS TABLE", BigQueryIO.writeTableRows()
+                        .to(String.format("%s:%s.order_shipments", project,dataset))
+                        .withCreateDisposition(CREATE_IF_NEEDED)
+                        .withWriteDisposition(WRITE_APPEND)
+                        .withSchema(getTableSchemaOrderShipments()));
+        rowsOrderShipmentsList
+                .apply("FORMAT MESSAGE ORDER SHIPMENTS", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessageList("Order_shipments_pipeline_completed","order_shipments")))
+                .apply("WRITE PUB MESSAGE ORDER SHIPMENTS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-shipments"));
 
         // ********************************************   ORDER SHIPMENTS ERROR    ********************************************
-        WriteResult writeResultOrderShipmentsError = rowsOrderShipments.apply("TRANSFORM DATA FOR ERROR", ParDo.of(new OrderShipments.mapOrderShipmentsErrorShipHawk()))
-                .apply("WRITE DATA IN BIGQUERY ORDER STATUS TABLE", BigQueryIO.writeTableRows()
+        PCollection<TableRow> rowsOrderShipmentsErrors = rowsOrderShipments.apply("TRANSFORM JSON TO TABLE ROW ERROR", ParDo.of(new mapOrderShipmentsErrorShipHawk()));
+        rowsOrderShipmentsErrors
+                .apply(Window.into(FixedWindows.of(Duration.standardSeconds(20))))
+                .apply("WRITE DATA IN BIGQUERY ERRORS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_errors", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
                         .withSchema(getTableSchemaOrderErrors()));
+        rowsOrderShipmentsErrors
+                .apply("FORMAT MESSAGE ORDER ERRORS", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_status-errors_pipeline_completed","order_error")))
+                .apply("WRITE PUB MESSAGE ORDER ERRORS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-errors"));
 
         // ********************************************   ORDER ITEMS TABLE   ********************************************
-        PCollection<TableRow> rowsOrderItems = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new OrderItems.TransformJsonParDoOrderItemsShiphawk()));
-        WriteResult writeResultOrderItems = rowsOrderItems.apply("WRITE DATA IN BIGQUERY ORDER ITEMS TABLE", BigQueryIO.writeTableRows()
-                .to(String.format("%s:%s.order_items", project,dataset))
-                .withCreateDisposition(CREATE_IF_NEEDED)
-                .withWriteDisposition(WRITE_APPEND)
-                .withSchema(getTableSchemaOrderItems()));
-        rowsOrderItems.apply(Wait.on(writeResultOrderItems.getFailedInserts()))
-                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_items_pipeline_completed","order_items")))
-                .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
+        PCollection<List<TableRow>> rowsOrderItemsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new TransformJsonParDoOrderItemsShopifyList()));
+        PCollection<TableRow> rowsOrderItems = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new TransformJsonParDoOrderItemsShiphawk()));
+        rowsOrderItems
+                .apply(Window.into(FixedWindows.of(Duration.standardSeconds(20))))
+                .apply("WRITE DATA IN BIGQUERY ORDER ITEMS TABLE", BigQueryIO.writeTableRows()
+                        .to(String.format("%s:%s.order_items", project,dataset))
+                        .withCreateDisposition(CREATE_IF_NEEDED)
+                        .withWriteDisposition(WRITE_APPEND)
+                        .withSchema(getTableSchemaOrderItems()));
+        rowsOrderItemsList
+                .apply("FORMAT MESSAGE ORDER ITEMS", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessageList("Order_items_pipeline_completed","order_items")))
+                .apply("WRITE PUB MESSAGE ORDER ITEMS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-items"));
 
         // ********************************************   ORDER SOURCES TABLE   ********************************************
         PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new OrderSources.TransformJsonParDoOrderSourcesShipHawk()));
