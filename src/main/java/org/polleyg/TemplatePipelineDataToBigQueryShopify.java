@@ -1,6 +1,7 @@
 package org.polleyg;
 
 import com.google.api.services.bigquery.model.TableRow;
+import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
@@ -63,14 +64,15 @@ public class TemplatePipelineDataToBigQueryShopify {
 
         // ********************************************   CUSTOMERS TABLE   ********************************************
         PCollection<TableRow> rowsCustomers = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new TransformJsonParDoCustomer()));
-        rowsCustomers
+        WriteResult writeResult =rowsCustomers
                 .apply("WRITE DATA IN BIGQUERY CUSTOMERS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.customers", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
+                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
                         .withSchema(getTableSchemaCustomer()));
         rowsCustomers
-                .apply(Window.into(FixedWindows.of(Duration.standardSeconds(100))))
+                .apply(Wait.on(writeResult.getFailedInserts()))
                 .apply("FORMAT MESSAGE CUSTOMERS", ParDo.of(new CountMessage("Customers_pipeline_completed","customers")))
                 .apply("WRITE PUB MESSAGE CUSTOMERS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-customers"));
 
