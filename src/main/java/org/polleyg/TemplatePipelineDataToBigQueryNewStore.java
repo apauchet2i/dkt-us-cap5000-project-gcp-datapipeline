@@ -55,7 +55,7 @@ public class TemplatePipelineDataToBigQueryNewStore {
                 .withSchema(getTableSchemaOrderStatus()));
 
         rowsOrderStatus.apply(Wait.on(writeResultOrderStatus.getFailedInserts()))
-                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_status_pipeline_completed","order_status","order_number","source")))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_status_pipeline_completed","order_status")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   ORDER STATUS PAYMENT ERROR    ********************************************
@@ -75,7 +75,7 @@ public class TemplatePipelineDataToBigQueryNewStore {
                 .withSchema(getTableSchemaOrderShipments()));
 
         rowsOrderShipments.apply(Wait.on(writeResultOrderShipments.getFailedInserts()))
-                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShipHawk.CountMessage("Order_shipments_pipeline_completed","order_status","order_number","source")))
+                .apply("COUNT MESSAGE", ParDo.of(new CountMessage("Order_shipments_pipeline_completed","order_status")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   ORDER SHIPMENTS ERROR    ********************************************
@@ -94,7 +94,7 @@ public class TemplatePipelineDataToBigQueryNewStore {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderSources()));
         rowsOrderSources.apply(Wait.on(writeResultOrderSources.getFailedInserts()))
-                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_sources_pipeline_completed","order_sources","order_number","source")))
+                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_sources_pipeline_completed","order_sources")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   ORDER ITEMS TABLE   ********************************************
@@ -105,7 +105,7 @@ public class TemplatePipelineDataToBigQueryNewStore {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderItems()));
         rowsOrderItems.apply(Wait.on(writeResultOrderItems.getFailedInserts()))
-                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_items_pipeline_completed","order_items","shipment_id","source")))
+                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_items_pipeline_completed","order_items")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
 
@@ -123,22 +123,16 @@ public class TemplatePipelineDataToBigQueryNewStore {
     public static class CountMessage extends DoFn<TableRow, PubsubMessage>{
         private String messageDone;
         private String table;
-        private String firstDistinctColon;
-        private String secondDistinctColon;
 
-        public CountMessage(String messageDone, String table, String firstDistinctColon, String secondDistinctColon) {
+        public CountMessage(String messageDone, String table) {
             this.messageDone = messageDone;
             this.table = table;
-            this.firstDistinctColon = firstDistinctColon;
-            this.secondDistinctColon = secondDistinctColon;
 
         }
         @ProcessElement
         public void processElement(ProcessContext c) {
             Map<String, String> attributes = new HashMap<>();
             attributes.put("table", table);
-            attributes.put("first_distinct_colon", firstDistinctColon);
-            attributes.put("second_distinct_colon", secondDistinctColon);
             PubsubMessage message = new PubsubMessage(messageDone.getBytes(), attributes);
             c.output(message);
         }

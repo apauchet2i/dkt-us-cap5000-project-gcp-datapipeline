@@ -71,7 +71,7 @@ public class TemplatePipelineDataToBigQueryShipHawk {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderItems()));
         rowsOrderItems.apply(Wait.on(writeResultOrderItems.getFailedInserts()))
-                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_items_pipeline_completed","order_items","shipment_id","source")))
+                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_items_pipeline_completed","order_items")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   ORDER SOURCES TABLE   ********************************************
@@ -82,7 +82,7 @@ public class TemplatePipelineDataToBigQueryShipHawk {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaOrderSources()));
         rowsOrderSources.apply(Wait.on(writeResultOrderSources.getFailedInserts()))
-                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_sources_pipeline_completed","order_sources","order_number","source")))
+                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Order_sources_pipeline_completed","order_sources")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         // ********************************************   SHIPMENT TRACKINGS TABLE   ********************************************
@@ -93,7 +93,7 @@ public class TemplatePipelineDataToBigQueryShipHawk {
                 .withWriteDisposition(WRITE_APPEND)
                 .withSchema(getTableSchemaShipmentTrackings()));
         rowsShipmentTrackings.apply(Wait.on(writeResultShipmentTrackings.getFailedInserts()))
-                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Shipment_trackings_pipeline_completed","shipment_trackings","shipment_id","source")))
+                .apply("COUNT MESSAGE", ParDo.of(new TemplatePipelineDataToBigQueryShopify.CountMessage("Shipment_trackings_pipeline_completed","shipment_trackings")))
                 .apply("WRITE PUB MESSAGE", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-end-datapipeline"));
 
         pipeline.run();
