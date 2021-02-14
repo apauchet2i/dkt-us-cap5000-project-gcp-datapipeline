@@ -9,7 +9,7 @@ exports.dktUsCap5000ProjectDeduplicateDataCustomers = function() {
 
     subscriptionName = 'projects/dkt-us-data-lake-a1xq/subscriptions/dkt-us-cap5000-project-datapipeline-customers-sub';
 
-    function listenForMessages() {
+    let listenForMessages = new Promise(function (resolve,reject){
 
     // Creates a client; cache this for further use
     const pubSubClient = new PubSub();
@@ -45,8 +45,9 @@ exports.dktUsCap5000ProjectDeduplicateDataCustomers = function() {
 
         setTimeout(() => {
             subscription.close();
+            resolve("ok")
         }, timeout * 1000);
-    }
+    });
 
     function query() {
         console.log("begin function");
