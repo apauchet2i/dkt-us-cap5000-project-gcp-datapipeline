@@ -25,6 +25,7 @@ import org.polleyg.models.ShipmentTrackings.*;
 import org.polleyg.models.OrderSources.*;
 import java.util.*;
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
+import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.Method.FILE_LOADS;
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.polleyg.models.Customer.getTableSchemaCustomer;
 import static org.polleyg.models.OrderErrors.getTableSchemaOrderErrors;
@@ -56,7 +57,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.orders", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                         .withSchema(getTableSchemaOrder()));
         rowsOrders
                 .apply(Wait.on(writeResultOrders.getFailedInserts()))
@@ -70,7 +71,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.customers", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                         .withSchema(getTableSchemaCustomer()));
         rowsCustomers
                 .apply(Wait.on(writeResultCustomers.getFailedInserts()))
@@ -84,7 +85,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.order_errors", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                         .withSchema(getTableSchemaOrderErrors()));
         rowsCustomersError
                 .apply(Wait.on(writeResultCustomersErrors.getFailedInserts()))
@@ -99,7 +100,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.order_items", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                         .withSchema(getTableSchemaOrderItems()));
         rowsOrderItemsList
                 .apply(Wait.on(writeResultOrderItems.getFailedInserts()))
@@ -114,7 +115,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.order_sources", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                         .withSchema(getTableSchemaOrderSources()));
         rowsOrderSources
                 .apply(Wait.on(writeResultOrderSources.getFailedInserts()))
@@ -129,7 +130,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .to(String.format("%s:%s.order_status", project,dataset))
                 .withCreateDisposition(CREATE_IF_NEEDED)
                 .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                 .withSchema(getTableSchemaOrderStatus()));
         rowOrderStatusList
                 .apply(Wait.on(writeResultOrderStatus.getFailedInserts()))
@@ -143,7 +144,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.order_errors", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                         .withSchema(getTableSchemaOrderErrors()));
         rowsOrderStatusErrors
                 .apply(Wait.on(writeResultOrderStatusErrors.getFailedInserts()))
@@ -158,7 +159,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.order_shipments", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                         .withSchema(getTableSchemaOrderShipments()));
         rowsOrderShipmentsList
                 .apply(Wait.on(writeResultOrderShipments.getFailedInserts()))
@@ -172,7 +173,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.order_errors", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                         .withSchema(getTableSchemaOrderErrors()));
         rowsOrderShipmentsErrors
                 .apply(Wait.on(writeResultOrderShipmentsErrors.getFailedInserts()))
@@ -187,7 +188,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                     .to(String.format("%s:%s.shipment_trackings", project,dataset))
                     .withCreateDisposition(CREATE_IF_NEEDED)
                     .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                     .withSchema(getTableSchemaShipmentTrackings()));
         rowsShipmentTrackingsList
                 .apply(Wait.on(writeResultShipmentTrackings.getFailedInserts()))
@@ -201,7 +202,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .to(String.format("%s:%s.order_errors", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
                         .withWriteDisposition(WRITE_APPEND)
-                        .withMethod(BigQueryIO.Write.Method.STREAMING_INSERTS)
+                        .withMethod(FILE_LOADS)
                         .withSchema(getTableSchemaOrderErrors()));
         rowsShipmentTrackingsError
                 .apply(Wait.on(writeResultShipmentTrackingsError.getFailedInserts()))

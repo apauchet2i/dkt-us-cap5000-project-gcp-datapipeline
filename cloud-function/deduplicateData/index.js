@@ -137,9 +137,6 @@ exports.dktUsCap5000ProjectDeduplicateDataOrders = function() {
 
 exports.dktUsCap5000ProjectDeduplicateDataOrderStatus = function() {
 
-    const {BigQuery} = require('@google-cloud/bigquery');
-    const bigquery = new BigQuery();
-
     async function query() {
         console.log("begin function");
 
