@@ -4,7 +4,6 @@ import com.google.api.services.bigquery.model.TableRow;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
 import org.apache.beam.sdk.transforms.*;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
@@ -23,9 +22,7 @@ import org.polleyg.models.OrderShipments.*;
 import org.polleyg.models.OrderStatus.*;
 import org.polleyg.models.ShipmentTrackings.*;
 import org.polleyg.models.OrderSources.*;
-
 import java.util.*;
-
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.polleyg.models.Customer.getTableSchemaCustomer;
@@ -199,11 +196,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .apply("WRITE PUB MESSAGE ORDER ERROR", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-errors"));
 
         pipeline.run();
-
-
     }
-
-
 
     public interface TemplateOptions extends DataflowPipelineOptions {
         @Description("GCS path of the file to read from")
@@ -245,6 +238,4 @@ public class TemplatePipelineDataToBigQueryShopify {
             c.output(message);
         }
     }
-
-//comment
 }
