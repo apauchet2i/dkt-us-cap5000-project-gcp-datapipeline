@@ -106,7 +106,6 @@ public class TemplatePipelineDataToBigQueryShopify {
 
         // ********************************************   ORDER SOURCES TABLE   ********************************************
         PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new TransformJsonParDoOrderSourcesShopify()));
-        Window.into(FixedWindows.of(Duration.standardMinutes(5))).triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardMinutes(5)));
         WriteResult writeResultOrderSources =rowsOrderSources
                 .apply("WRITE DATA IN BIGQUERY ORDER SOURCES TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_sources", project,dataset))
@@ -114,8 +113,10 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withWriteDisposition(WRITE_APPEND)
                         .optimizedWrites()
                         .withSchema(getTableSchemaOrderSources()));
-                ParDo.of(new CountMessage("Order_sources_pipeline_completed","order_sources"));
-                PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-sources");
+        rowsOrderSources.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardMinutes(5))).triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardMinutes(5))).discardingFiredPanes().withAllowedLateness(Duration.standardSeconds(1)))
+
+                .apply("FORMAT MESSAGE ORDER ERRORS",ParDo.of(new CountMessage("Order_sources_pipeline_completed","order_sources")))
+                .apply("WRITE PUB MESSAGE ORDER ERRORS",PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-sources"));
 
         // ********************************************   ORDER STATUS TABLE   ********************************************
         PCollection<List<TableRow>> rowOrderStatusList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new TransformJsonParDoOrderStatusShopifyList()));
@@ -127,8 +128,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                 .withWriteDisposition(WRITE_APPEND)
                         .optimizedWrites()
                 .withSchema(getTableSchemaOrderStatus()));
-        PCollection<List<TableRow>> rowsShipmentOrderStatusTest = rowOrderStatusList.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
-        rowsShipmentOrderStatusTest
+        rowOrderStatusList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardMinutes(5))).triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardMinutes(5))).discardingFiredPanes().withAllowedLateness(Duration.standardSeconds(1)))
                 .apply("FORMAT MESSAGE ORDER STATUS", ParDo.of(new CountMessageList("Order_status_pipeline_completed","order_status")))
                 .apply("WRITE PUB MESSAGE ORDER STATUS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-status"));
 
@@ -141,8 +141,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withWriteDisposition(WRITE_APPEND)
                         .optimizedWrites()
                         .withSchema(getTableSchemaOrderErrors()));
-        PCollection<TableRow> rowsOrderStatusErrorTest = rowsOrderStatus.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
-        rowsOrderStatusErrorTest
+        rowsOrderStatusErrors.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardMinutes(5))).triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardMinutes(5))).discardingFiredPanes().withAllowedLateness(Duration.standardSeconds(1)))
                 .apply("FORMAT MESSAGE ORDER ERRORS", ParDo.of(new CountMessage("Order_status-errors_pipeline_completed","order_errors")))
                 .apply("WRITE PUB MESSAGE ORDER ERRORS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-errors"));
 
@@ -156,8 +155,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withWriteDisposition(WRITE_APPEND)
                         .optimizedWrites()
                         .withSchema(getTableSchemaOrderShipments()));
-        PCollection<List<TableRow>> rowsShipmentErrorTest = rowsOrderShipmentsList.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
-        rowsShipmentErrorTest
+        rowsOrderShipmentsList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardMinutes(5))).triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardMinutes(5))).discardingFiredPanes().withAllowedLateness(Duration.standardSeconds(1)))
                 .apply("FORMAT MESSAGE ORDER SHIPMENTS", ParDo.of(new CountMessageList("Order_shipments_pipeline_completed","order_shipments")))
                 .apply("WRITE PUB MESSAGE ORDER SHIPMENTS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-shipments"));
 
@@ -170,7 +168,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withWriteDisposition(WRITE_APPEND)
                         .optimizedWrites()
                         .withSchema(getTableSchemaOrderErrors()));
-        rowsOrderShipmentsErrors
+        rowsOrderShipmentsErrors.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardMinutes(5))).triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardMinutes(5))).discardingFiredPanes().withAllowedLateness(Duration.standardSeconds(1)))
                 .apply("FORMAT MESSAGE ORDER ERRORS", ParDo.of(new CountMessage("Order_status-errors_pipeline_completed","order_error")))
                 .apply("WRITE PUB MESSAGE ORDER ERRORS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-errors"));
 
@@ -184,8 +182,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                     .withWriteDisposition(WRITE_APPEND)
                         .optimizedWrites()
                     .withSchema(getTableSchemaShipmentTrackings()));
-        PCollection<List<TableRow>> rowsShipmentTrackingsTest = rowsShipmentTrackingsList.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
-        rowsShipmentTrackingsTest
+        rowsShipmentTrackingsList.apply(Window.<List<TableRow>>into(FixedWindows.of(Duration.standardMinutes(5))).triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardMinutes(5))).discardingFiredPanes().withAllowedLateness(Duration.standardSeconds(1)))
                 .apply("FORMAT MESSAGE SHIPMENT TRACKINGS", ParDo.of(new CountMessageList("Shipment_trackings_pipeline_completed","shipment_trackings")))
                 .apply("WRITE PUB MESSAGE SHIPMENT TRACKINGS", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-shipment-trackings"));
 
@@ -198,8 +195,7 @@ public class TemplatePipelineDataToBigQueryShopify {
                         .withWriteDisposition(WRITE_APPEND)
                         .optimizedWrites()
                         .withSchema(getTableSchemaOrderErrors()));
-        PCollection<TableRow> rowsShipmentTrackingsErrorTest = rowsShipmentTrackingsError.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
-        rowsShipmentTrackingsErrorTest
+        rowsOrderShipmentsErrors.apply(Window.<TableRow>into(FixedWindows.of(Duration.standardMinutes(5))).triggering(AfterProcessingTime.pastFirstElementInPane().plusDelayOf(Duration.standardMinutes(5))).discardingFiredPanes().withAllowedLateness(Duration.standardSeconds(1)))
                 .apply("FORMAT MESSAGE ORDER ERROR", ParDo.of(new CountMessage("Shipment-trackings-errors_pipeline_completed","order_errors")))
                 .apply("WRITE PUB MESSAGE ORDER ERROR", PubsubIO.writeMessages().to("projects/dkt-us-data-lake-a1xq/topics/dkt-us-cap5000-project-datapipeline-order-errors"));
 
