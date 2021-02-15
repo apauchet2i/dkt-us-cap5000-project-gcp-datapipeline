@@ -28,9 +28,10 @@ public class OrderSources {
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
+            JSONObject order = (JSONObject) jsonObject.get("order");
 
             Map<String, Object> mapOrderSources = new HashMap<>();
-            mapOrderSources.put("order_number", jsonObject.get("name"));
+            mapOrderSources.put("order_number", order.get("name"));
             mapOrderSources.put("source","shopify");
             mapOrderSources.put("updated_at", DateNow.dateNow());
 

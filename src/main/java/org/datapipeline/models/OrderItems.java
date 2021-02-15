@@ -59,8 +59,6 @@ public class OrderItems {
                     }
                 }
                 c.output(listTableRow);
-            }else {
-                c.output(listTableRow);
             }
         }
     }
@@ -101,10 +99,6 @@ public class OrderItems {
                 c.output(tableRow);
             }
         }
-            else {
-                TableRow tableRowOrderItems = new TableRow();
-                c.output(tableRowOrderItems);
-            }
 
             }
     }

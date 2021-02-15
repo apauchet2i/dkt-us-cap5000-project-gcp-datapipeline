@@ -42,7 +42,7 @@ public class Orders {
             JSONObject shippingAddress = (JSONObject) order.get("shipping_address");
 
             Map<String, Object> map = new HashMap<>();
-            map.put("number", jsonObject.get("name"));
+            map.put("number", order.get("name"));
             map.put("customer_id", String.valueOf(customer.get("id")));
             map.put("street1", shippingAddress.get("address1"));
             if (shippingAddress.get("address2") != null) {

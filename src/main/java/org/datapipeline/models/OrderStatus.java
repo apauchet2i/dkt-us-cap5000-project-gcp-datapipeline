@@ -92,10 +92,10 @@ public class OrderStatus {
             mapOrderStatus.put("order_number", order.get("name"));
             mapOrderStatus.put("source", "shopify");
             mapOrderStatus.put("type", "order");
-            if(jsonObject.get("cancelled_at") != null) {
+            if(order.get("cancelled_at") != null) {
                 mapOrderStatus.put("status", "cancelled");
             }
-            else if(jsonObject.get("closed_at") != null){
+            else if(order.get("closed_at") != null){
                 mapOrderStatus.put("status", "closed");
             }
             else{
@@ -108,10 +108,14 @@ public class OrderStatus {
             listTableRow.add(tableRowStatusOrder);
 
             Map<Object, Object> mapFulfillmentStatus = new HashMap<>();
+            if(order.get("fulfillment_status") == null){
+                mapFulfillmentStatus.put("status", "unfulfilled");
+            } else {
+                mapFulfillmentStatus.put("status", order.get("fulfillment_status"));
+            }
             mapFulfillmentStatus.put("order_number", order.get("name"));
             mapFulfillmentStatus.put("source", "shopify");
             mapFulfillmentStatus.put("type", "fulfillment");
-            mapFulfillmentStatus.put("status", order.get("fulfillment_status"));
             mapFulfillmentStatus.put("updated_at", DateNow.dateNow());
             JSONObject mapStatusFulfillmentToBigQuery = new JSONObject(mapFulfillmentStatus);
             TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapStatusFulfillmentToBigQuery));

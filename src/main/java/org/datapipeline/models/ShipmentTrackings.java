@@ -82,33 +82,36 @@ public class ShipmentTrackings {
             JSONObject order = (JSONObject) jsonObject.get("order");
 
             JSONArray fulfillmentArray = (JSONArray) order.get("fulfillments");
-            Map<Object, Object> mapShipmentOrder = new HashMap<>();
-            mapShipmentOrder.put("source", "shopify");
 
-            for (Object o : fulfillmentArray) {
-                JSONObject fulfillment = (JSONObject) o;
-                mapShipmentOrder.put("shipment_id", fulfillment.get("name"));
-                JSONArray trackingNumbers = (JSONArray) fulfillment.get("tracking_numbers");
-                JSONArray trackingUrls = (JSONArray) fulfillment.get("tracking_urls");
-                if (fulfillment.get("tracking_numbers") != null && trackingNumbers.size() != 0) {
-                    mapShipmentOrder.put("tracking_id", trackingNumbers.get(0));
-                } else {
-                    mapShipmentOrder.put("tracking_id", "null");
+            if (fulfillmentArray != null && fulfillmentArray.size() > 0) {
+                Map<Object, Object> mapShipmentOrder = new HashMap<>();
+                mapShipmentOrder.put("source", "shopify");
+
+                for (Object o : fulfillmentArray) {
+                    JSONObject fulfillment = (JSONObject) o;
+                    mapShipmentOrder.put("shipment_id", fulfillment.get("name"));
+                    JSONArray trackingNumbers = (JSONArray) fulfillment.get("tracking_numbers");
+                    JSONArray trackingUrls = (JSONArray) fulfillment.get("tracking_urls");
+                    if (fulfillment.get("tracking_numbers") != null && trackingNumbers.size() != 0) {
+                        mapShipmentOrder.put("tracking_id", trackingNumbers.get(0));
+                    } else {
+                        mapShipmentOrder.put("tracking_id", "null");
+                    }
+                    if (fulfillment.get("tracking_urls") != null && trackingUrls.size() != 0) {
+                        mapShipmentOrder.put("tracking_link", trackingUrls.get(0));
+                    } else {
+                        mapShipmentOrder.put("tracking_link", "null");
+                    }
+                    mapShipmentOrder.put("updated_at", DateNow.dateNow());
                 }
-                if (fulfillment.get("tracking_urls") != null && trackingUrls.size() != 0) {
-                    mapShipmentOrder.put("tracking_link", trackingUrls.get(0));
-                } else {
-                    mapShipmentOrder.put("tracking_link", "null");
+
+                JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
+                TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
+                listTableRow.add(tableRowStatusFulfillment);
+
+                for (TableRow tableRow : listTableRow) {
+                    c.output(tableRow);
                 }
-                mapShipmentOrder.put("updated_at", DateNow.dateNow());
-            }
-
-            JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
-            TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
-            listTableRow.add(tableRowStatusFulfillment);
-
-            for (TableRow tableRow : listTableRow) {
-                c.output(tableRow);
             }
         }
     }

@@ -54,7 +54,6 @@ public class OrderShipments {
             listTableRow.add(tableRowStatusFulfillment);
 
             c.output(listTableRow);
-
         }
     }
 
@@ -70,23 +69,26 @@ public class OrderShipments {
             JSONObject order = (JSONObject) jsonObject.get("order");
 
             JSONArray fulfillmentArray = (JSONArray) order.get("fulfillments");
-            Map<Object, Object> mapShipmentOrder = new HashMap<>();
-            mapShipmentOrder.put("source","shopify");
-            mapShipmentOrder.put("order_number",order.get("name"));
-            mapShipmentOrder.put("updated_at", DateNow.dateNow());
 
-            for (Object o : fulfillmentArray) {
-                JSONObject fulfillment = (JSONObject) o;
-                mapShipmentOrder.put("id", fulfillment.get("name"));
-                mapShipmentOrder.put("status", fulfillment.get("shipment_status"));
-            }
+            if (fulfillmentArray != null && fulfillmentArray.size() > 0 ) {
+                Map<Object, Object> mapShipmentOrder = new HashMap<>();
+                mapShipmentOrder.put("source", "shopify");
+                mapShipmentOrder.put("order_number", order.get("name"));
+                mapShipmentOrder.put("updated_at", DateNow.dateNow());
 
-            JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
-            TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
-            listTableRow.add(tableRowStatusFulfillment);
+                for (Object o : fulfillmentArray) {
+                    JSONObject fulfillment = (JSONObject) o;
+                    mapShipmentOrder.put("id", fulfillment.get("name"));
+                    mapShipmentOrder.put("status", fulfillment.get("shipment_status"));
+                }
 
-            for (TableRow tableRow : listTableRow) {
-                c.output(tableRow);
+                JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
+                TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
+                listTableRow.add(tableRowStatusFulfillment);
+
+                for (TableRow tableRow : listTableRow) {
+                    c.output(tableRow);
+                }
             }
         }
     }
