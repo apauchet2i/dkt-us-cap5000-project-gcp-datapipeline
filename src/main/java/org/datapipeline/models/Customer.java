@@ -30,7 +30,8 @@ public class Customer {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            JSONObject customer = (JSONObject) jsonObject.get("customer");
+            JSONObject order = (JSONObject) jsonObject.get("order");
+            JSONObject customer = (JSONObject) order.get("customer");
 
             Map<String, Object> mapCustomer = new HashMap<>();
             mapCustomer.put("id", String.valueOf(customer.get("id")));
@@ -54,7 +55,11 @@ public class Customer {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            JSONObject customer = (JSONObject) jsonObject.get("customer");
+            JSONObject order = (JSONObject) jsonObject.get("order");
+            JSONObject customer = (JSONObject) order.get("customer");
+            System.out.println(customer.get("id"));
+            System.out.println(customer.get("last_name"));
+            System.out.println(customer.get("first_name"));
             if (customer.get("id") == null || customer.get("last_name") == null || customer.get("first_name") == null) {
                 Map<String, Object> mapCustomerError = new HashMap<>();
                 mapCustomerError.put("order_number", jsonObject.get("name"));

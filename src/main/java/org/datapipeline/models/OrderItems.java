@@ -37,26 +37,31 @@ public class OrderItems {
             JSONObject jsonObject = (JSONObject) obj;
 
             JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
-            Map<Object, Object> mapOrderItems = new HashMap<>();
 
-            for (Object fulfillments : fulfillmentArray) {
-                JSONObject fulfillment = (JSONObject) fulfillments;
-                JSONArray itemsArray = (JSONArray) fulfillment.get("line_items");
-                for (Object items : itemsArray) {
-                    JSONObject item = (JSONObject) items;
-                    mapOrderItems.put("id", item.get("sku"));
-                    mapOrderItems.put("shipment_id", fulfillment.get("name"));
-                    mapOrderItems.put("source", "shopify");
-                    mapOrderItems.put("name", item.get("name"));
-                    mapOrderItems.put("price", item.get("price"));
-                    mapOrderItems.put("quantity", item.get("quantity"));
-                    mapOrderItems.put("updated_at", DateNow.dateNow());
-                    JSONObject mapOrderItemsToBigQuery = new JSONObject(mapOrderItems);
-                    TableRow tableRowOrderItems = convertJsonToTableRow(String.valueOf(mapOrderItemsToBigQuery));
-                    listTableRow.add(tableRowOrderItems);
+            if (fulfillmentArray != null && fulfillmentArray.size() > 0 ) {
+                Map<Object, Object> mapOrderItems = new HashMap<>();
+
+                for (Object fulfillments : fulfillmentArray) {
+                    JSONObject fulfillment = (JSONObject) fulfillments;
+                    JSONArray itemsArray = (JSONArray) fulfillment.get("line_items");
+                    for (Object items : itemsArray) {
+                        JSONObject item = (JSONObject) items;
+                        mapOrderItems.put("id", item.get("sku"));
+                        mapOrderItems.put("shipment_id", fulfillment.get("name"));
+                        mapOrderItems.put("source", "shopify");
+                        mapOrderItems.put("name", item.get("name"));
+                        mapOrderItems.put("price", item.get("price"));
+                        mapOrderItems.put("quantity", item.get("quantity"));
+                        mapOrderItems.put("updated_at", DateNow.dateNow());
+                        JSONObject mapOrderItemsToBigQuery = new JSONObject(mapOrderItems);
+                        TableRow tableRowOrderItems = convertJsonToTableRow(String.valueOf(mapOrderItemsToBigQuery));
+                        listTableRow.add(tableRowOrderItems);
+                    }
                 }
-            }
                 c.output(listTableRow);
+            }else {
+                c.output(listTableRow);
+            }
         }
     }
 
@@ -70,7 +75,10 @@ public class OrderItems {
             JSONObject jsonObject = (JSONObject) obj;
 
             JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
-            Map<Object, Object> mapOrderItems = new HashMap<>();
+
+            if (fulfillmentArray != null && fulfillmentArray.size() > 0 ) {
+
+                Map<Object, Object> mapOrderItems = new HashMap<>();
 
             for (Object fulfillments : fulfillmentArray) {
                 JSONObject fulfillment = (JSONObject) fulfillments;
@@ -93,6 +101,12 @@ public class OrderItems {
                 c.output(tableRow);
             }
         }
+            else {
+                TableRow tableRowOrderItems = new TableRow();
+                c.output(tableRowOrderItems);
+            }
+
+            }
     }
 
     public static class TransformJsonParDoOrderItemsNewStore extends DoFn<String, TableRow> {

@@ -86,9 +86,10 @@ public class OrderStatus {
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
+            JSONObject order = (JSONObject) jsonObject.get("order");
 
             Map<Object, Object> mapOrderStatus = new HashMap<>();
-            mapOrderStatus.put("order_number", jsonObject.get("name"));
+            mapOrderStatus.put("order_number", order.get("name"));
             mapOrderStatus.put("source", "shopify");
             mapOrderStatus.put("type", "order");
             if(jsonObject.get("cancelled_at") != null) {
@@ -107,10 +108,10 @@ public class OrderStatus {
             listTableRow.add(tableRowStatusOrder);
 
             Map<Object, Object> mapFulfillmentStatus = new HashMap<>();
-            mapFulfillmentStatus.put("order_number", jsonObject.get("name"));
+            mapFulfillmentStatus.put("order_number", order.get("name"));
             mapFulfillmentStatus.put("source", "shopify");
             mapFulfillmentStatus.put("type", "fulfillment");
-            mapFulfillmentStatus.put("status", jsonObject.get("fulfillment_status"));
+            mapFulfillmentStatus.put("status", order.get("fulfillment_status"));
             mapFulfillmentStatus.put("updated_at", DateNow.dateNow());
             JSONObject mapStatusFulfillmentToBigQuery = new JSONObject(mapFulfillmentStatus);
             TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapStatusFulfillmentToBigQuery));
@@ -118,10 +119,10 @@ public class OrderStatus {
             listTableRow.add(tableRowStatusFulfillment);
 
             Map<Object, Object> mapPaymentStatus = new HashMap<>();
-            mapPaymentStatus.put("order_number", jsonObject.get("name"));
+            mapPaymentStatus.put("order_number", order.get("name"));
             mapPaymentStatus.put("source", "shopify");
             mapPaymentStatus.put("type", "payment");
-            mapPaymentStatus.put("status", jsonObject.get("financial_status"));
+            mapPaymentStatus.put("status", order.get("financial_status"));
             mapPaymentStatus.put("updated_at", DateNow.dateNow());
             JSONObject mapStatusPaymentToBigQuery = new JSONObject(mapPaymentStatus);
             TableRow tableRowStatusPayment = convertJsonToTableRow(String.valueOf(mapStatusPaymentToBigQuery));
@@ -141,6 +142,7 @@ public class OrderStatus {
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
+
 
             Map<Object, Object> mapOrderStatus = new HashMap<>();
             mapOrderStatus.put("order_number", jsonObject.get("order_id"));
@@ -178,6 +180,9 @@ public class OrderStatus {
 
         @ProcessElement
         public void processElement(ProcessContext c) throws Exception {
+            System.out.println(c.element());
+            System.out.println(c.element().get("type"));
+            System.out.println(c.element().get("type").toString());
             if(c.element().get("type").toString().equals("payment") && c.element().get("status").toString().equals("voided")) {
                 TableRow TableRowOrderStatusError = new TableRow();
                 TableRowOrderStatusError.set("order_number", c.element().get("order_number"));

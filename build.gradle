@@ -30,7 +30,8 @@ task runTemplatePipelineDataToBigQueryShopify (type: JavaExec) {
     main = 'org.datapipeline.TemplatePipelineDataToBigQueryShopify'
     classpath = sourceSets.main.runtimeClasspath
         args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
+           // "--runner=DataflowRunner",
+            "--runner=DirectRunner",
             "--maxNumWorkers=5",
             "--numWorkers=1",
             "--region=us-central1",

@@ -34,11 +34,13 @@ public class OrderShipments {
 
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
+            JSONObject order = (JSONObject) jsonObject.get("order");
 
-            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
+
+            JSONArray fulfillmentArray = (JSONArray) order.get("fulfillments");
             Map<Object, Object> mapShipmentOrder = new HashMap<>();
             mapShipmentOrder.put("source","shopify");
-            mapShipmentOrder.put("order_number",jsonObject.get("name"));
+            mapShipmentOrder.put("order_number",order.get("name"));
             mapShipmentOrder.put("updated_at", DateNow.dateNow());
 
             for (Object o : fulfillmentArray) {
@@ -65,11 +67,12 @@ public class OrderShipments {
 
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
+            JSONObject order = (JSONObject) jsonObject.get("order");
 
-            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
+            JSONArray fulfillmentArray = (JSONArray) order.get("fulfillments");
             Map<Object, Object> mapShipmentOrder = new HashMap<>();
             mapShipmentOrder.put("source","shopify");
-            mapShipmentOrder.put("order_number",jsonObject.get("name"));
+            mapShipmentOrder.put("order_number",order.get("name"));
             mapShipmentOrder.put("updated_at", DateNow.dateNow());
 
             for (Object o : fulfillmentArray) {

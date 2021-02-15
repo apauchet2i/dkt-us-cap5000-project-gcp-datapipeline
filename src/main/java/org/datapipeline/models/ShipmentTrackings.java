@@ -35,32 +35,39 @@ public class ShipmentTrackings {
             JSONObject jsonObject = (JSONObject) obj;
 
             JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
-            Map<Object, Object> mapShipmentOrder = new HashMap<>();
-            mapShipmentOrder.put("source", "shopify");
 
-            for (Object o : fulfillmentArray) {
-                JSONObject fulfillment = (JSONObject) o;
-                mapShipmentOrder.put("shipment_id", fulfillment.get("name"));
-                JSONArray trackingNumbers = (JSONArray) fulfillment.get("tracking_numbers");
-                JSONArray trackingUrls = (JSONArray) fulfillment.get("tracking_urls");
-                if (fulfillment.get("tracking_numbers") != null && trackingNumbers.size() != 0) {
-                    mapShipmentOrder.put("tracking_id", trackingNumbers.get(0));
-                } else {
-                    mapShipmentOrder.put("tracking_id", "null");
+            if (fulfillmentArray != null && fulfillmentArray.size() > 0 ) {
+
+                Map<Object, Object> mapShipmentOrder = new HashMap<>();
+                mapShipmentOrder.put("source", "shopify");
+
+                for (Object o : fulfillmentArray) {
+                    JSONObject fulfillment = (JSONObject) o;
+                    mapShipmentOrder.put("shipment_id", fulfillment.get("name"));
+                    JSONArray trackingNumbers = (JSONArray) fulfillment.get("tracking_numbers");
+                    JSONArray trackingUrls = (JSONArray) fulfillment.get("tracking_urls");
+                    if (fulfillment.get("tracking_numbers") != null && trackingNumbers.size() != 0) {
+                        mapShipmentOrder.put("tracking_id", trackingNumbers.get(0));
+                    } else {
+                        mapShipmentOrder.put("tracking_id", "null");
+                    }
+                    if (fulfillment.get("tracking_urls") != null && trackingUrls.size() != 0) {
+                        mapShipmentOrder.put("tracking_link", trackingUrls.get(0));
+                    } else {
+                        mapShipmentOrder.put("tracking_link", "null");
+                    }
+                    mapShipmentOrder.put("updated_at", DateNow.dateNow());
                 }
-                if (fulfillment.get("tracking_urls") != null && trackingUrls.size() != 0) {
-                    mapShipmentOrder.put("tracking_link", trackingUrls.get(0));
-                } else {
-                    mapShipmentOrder.put("tracking_link", "null");
-                }
-                mapShipmentOrder.put("updated_at", DateNow.dateNow());
+
+                JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
+                TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
+                listTableRow.add(tableRowStatusFulfillment);
+                c.output(listTableRow);
+
             }
-
-            JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
-            TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
-            listTableRow.add(tableRowStatusFulfillment);
-            c.output(listTableRow);
-
+            else {
+                c.output((listTableRow));
+            }
         }
     }
 
@@ -72,8 +79,9 @@ public class ShipmentTrackings {
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
+            JSONObject order = (JSONObject) jsonObject.get("order");
 
-            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
+            JSONArray fulfillmentArray = (JSONArray) order.get("fulfillments");
             Map<Object, Object> mapShipmentOrder = new HashMap<>();
             mapShipmentOrder.put("source", "shopify");
 
@@ -144,7 +152,8 @@ public class ShipmentTrackings {
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
-            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
+            JSONObject order = (JSONObject) jsonObject.get("order");
+            JSONArray fulfillmentArray = (JSONArray) order.get("fulfillments");
 
             for (Object o : fulfillmentArray) {
                 JSONObject fulfillment = (JSONObject) o;
@@ -152,7 +161,7 @@ public class ShipmentTrackings {
 
                 if (fulfillment.get("tracking_numbers") == null && trackingNumbers.size() == 0) {
                     TableRow TableRowOrderStatusError = new TableRow();
-                    TableRowOrderStatusError.set("order_number", jsonObject.get("name"));
+                    TableRowOrderStatusError.set("order_number", order.get("name"));
                     TableRowOrderStatusError.set("error_type", "tracking_number_error");
                     TableRowOrderStatusError.set("source", "shopify");
                     TableRowOrderStatusError.set("updated_at", DateNow.dateNow());

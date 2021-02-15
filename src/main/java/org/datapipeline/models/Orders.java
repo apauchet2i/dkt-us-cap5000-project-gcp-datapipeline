@@ -31,12 +31,15 @@ public class Orders {
 
         @ProcessElement
         public void processElement(ProcessContext c) throws Exception {
+
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            JSONObject customer = (JSONObject) jsonObject.get("customer");
-            JSONObject shippingAddress = (JSONObject) jsonObject.get("shipping_address");
+
+            JSONObject order = (JSONObject) jsonObject.get("order");
+            JSONObject customer = (JSONObject) order.get("customer");
+            JSONObject shippingAddress = (JSONObject) order.get("shipping_address");
 
             Map<String, Object> map = new HashMap<>();
             map.put("number", jsonObject.get("name"));
@@ -51,7 +54,7 @@ public class Orders {
             map.put("zip_code", shippingAddress.get("zip"));
             map.put("city", shippingAddress.get("city"));
             map.put("country", shippingAddress.get("country"));
-            map.put("created_at", ((String) jsonObject.get("created_at")).substring(0, ((String) jsonObject.get("created_at")).length() - 6));
+            map.put("created_at", ((String) order.get("created_at")).substring(0, ((String) order.get("created_at")).length() - 6));
             map.put("updated_at", DateNow.dateNow());
             JSONObject jsonToBigQuery = new JSONObject(map);
             TableRow tableRow = convertJsonToTableRow(String.valueOf(jsonToBigQuery));
