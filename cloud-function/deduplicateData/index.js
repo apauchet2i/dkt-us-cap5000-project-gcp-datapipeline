@@ -105,24 +105,20 @@ exports.dktUsCap5000ProjectDeduplicateDataOrderSources = function() {
 };
 
 exports.dktUsCap5000ProjectDeduplicateDataOrders = function() {
-
     async function query() {
-        console.log("begin function");
-
-        const sqlQuery = `DELETE FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.orders\` d WHERE EXISTS (WITH redundant AS (SELECT number, customer_id, MAX(updated_at) AS updated_at, COUNT(*) AS counter FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.orders\` GROUP BY number, customer_id HAVING counter > 1) SELECT * FROM redundant WHERE d.number=number AND d.customer_id=customer_id AND d.updated_at != updated_at)`;
-
-        // For all options, see https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query
+        const sqlQuery = `DELETE FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.orders\` d 
+                            WHERE EXISTS (WITH redundant AS (SELECT number, customer_id, 
+                            MAX(updated_at) AS updated_at, COUNT(*) AS counter FROM \`dkt-us-data-lake-a1xq.dkt_us_test_cap5000.orders\` 
+                            GROUP BY number, customer_id HAVING counter > 1) 
+                            SELECT * FROM redundant WHERE d.number=number AND d.customer_id=customer_id AND d.updated_at != updated_at)`;
         const options = {
             query: sqlQuery,
             location: 'US',
         };
-
         const [rows] = await bigquery.query(options);
-
         console.log('Rows:');
         rows.forEach(row => console.log(row));
     }
-
     query();
 };
 
