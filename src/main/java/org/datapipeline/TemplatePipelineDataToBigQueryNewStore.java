@@ -1,4 +1,4 @@
-package org.polleyg;
+package org.datapipeline;
 
 import com.google.api.services.bigquery.model.TableRow;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
@@ -15,21 +15,21 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.Wait;
 import org.apache.beam.sdk.values.PCollection;
-import org.polleyg.models.OrderItems;
-import org.polleyg.models.OrderShipments;
-import org.polleyg.models.OrderSources;
-import org.polleyg.models.OrderStatus;
+import org.datapipeline.models.OrderItems;
+import org.datapipeline.models.OrderShipments;
+import org.datapipeline.models.OrderSources;
+import org.datapipeline.models.OrderStatus;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
-import static org.polleyg.models.OrderErrors.getTableSchemaOrderErrors;
-import static org.polleyg.models.OrderItems.getTableSchemaOrderItems;
-import static org.polleyg.models.OrderShipments.getTableSchemaOrderShipments;
-import static org.polleyg.models.OrderSources.getTableSchemaOrderSources;
-import static org.polleyg.models.OrderStatus.getTableSchemaOrderStatus;
+import static org.datapipeline.models.OrderErrors.getTableSchemaOrderErrors;
+import static org.datapipeline.models.OrderItems.getTableSchemaOrderItems;
+import static org.datapipeline.models.OrderShipments.getTableSchemaOrderShipments;
+import static org.datapipeline.models.OrderSources.getTableSchemaOrderSources;
+import static org.datapipeline.models.OrderStatus.getTableSchemaOrderStatus;
 
 public class TemplatePipelineDataToBigQueryNewStore {
     public static void main(String[] args) {

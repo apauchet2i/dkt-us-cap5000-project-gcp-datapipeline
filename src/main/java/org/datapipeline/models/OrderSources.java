@@ -1,4 +1,4 @@
-package org.polleyg.models;
+package org.datapipeline.models;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
@@ -6,10 +6,10 @@ import com.google.api.services.bigquery.model.TableSchema;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.polleyg.utils.DateNow;
+import org.datapipeline.utils.DateNow;
 import java.util.*;
 
-import static org.polleyg.utils.JsonToTableRow.convertJsonToTableRow;
+import static org.datapipeline.utils.JsonToTableRow.convertJsonToTableRow;
 
 public class OrderSources {
 

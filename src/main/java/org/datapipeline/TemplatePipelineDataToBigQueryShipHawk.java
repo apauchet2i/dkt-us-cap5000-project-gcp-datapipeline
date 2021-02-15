@@ -1,4 +1,4 @@
-package org.polleyg;
+package org.datapipeline;
 
 import com.google.api.services.bigquery.model.TableRow;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
@@ -14,11 +14,8 @@ import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.Wait;
-import org.apache.beam.sdk.transforms.windowing.FixedWindows;
-import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.PCollection;
-import org.joda.time.Duration;
-import org.polleyg.models.*;
+import org.datapipeline.models.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,11 +23,11 @@ import java.util.Map;
 
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
-import static org.polleyg.models.OrderErrors.*;
-import static org.polleyg.models.OrderItems.*;
-import static org.polleyg.models.OrderShipments.*;
-import static org.polleyg.models.OrderSources.*;
-import static org.polleyg.models.ShipmentTrackings.*;
+import static org.datapipeline.models.OrderErrors.*;
+import static org.datapipeline.models.OrderItems.*;
+import static org.datapipeline.models.OrderShipments.*;
+import static org.datapipeline.models.OrderSources.*;
+import static org.datapipeline.models.ShipmentTrackings.*;
 
 public class TemplatePipelineDataToBigQueryShipHawk {
     public static void main(String[] args) {
@@ -48,7 +45,6 @@ public class TemplatePipelineDataToBigQueryShipHawk {
         PCollection<List<TableRow>> rowsOrderShipmentsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new TransformJsonParDoOrderShipmentsShiphawkList()));
         PCollection<TableRow> rowsOrderShipments = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new TransformJsonParDoOrderShipmentsShiphawk()));
         rowsOrderShipments
-                .apply(Window.into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("WRITE DATA IN BIGQUERY ORDER SHIPMENTS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_shipments", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
@@ -61,7 +57,6 @@ public class TemplatePipelineDataToBigQueryShipHawk {
         // ********************************************   ORDER SHIPMENTS ERROR    ********************************************
         PCollection<TableRow> rowsOrderShipmentsErrors = rowsOrderShipments.apply("TRANSFORM JSON TO TABLE ROW ERROR", ParDo.of(new mapOrderShipmentsErrorShipHawk()));
         rowsOrderShipmentsErrors
-                .apply(Window.into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("WRITE DATA IN BIGQUERY ERRORS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_errors", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)
@@ -75,7 +70,6 @@ public class TemplatePipelineDataToBigQueryShipHawk {
         PCollection<List<TableRow>> rowsOrderItemsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new TransformJsonParDoOrderItemsShopifyList()));
         PCollection<TableRow> rowsOrderItems = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new TransformJsonParDoOrderItemsShiphawk()));
         rowsOrderItems
-                .apply(Window.into(FixedWindows.of(Duration.standardSeconds(20))))
                 .apply("WRITE DATA IN BIGQUERY ORDER ITEMS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_items", project,dataset))
                         .withCreateDisposition(CREATE_IF_NEEDED)

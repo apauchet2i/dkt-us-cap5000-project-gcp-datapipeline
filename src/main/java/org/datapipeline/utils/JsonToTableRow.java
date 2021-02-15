@@ -1,4 +1,4 @@
-package org.polleyg.utils;
+package org.datapipeline.utils;
 
 import com.google.api.services.bigquery.model.TableRow;
 import org.apache.beam.sdk.coders.Coder;
