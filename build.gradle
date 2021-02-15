@@ -27,7 +27,7 @@ dependencies {
 }
 
 task runTemplatePipelineDataToBigQueryShopify (type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineDataToBigQueryShopify'
+    main = 'org.datapipeline.TemplatePipelineDataToBigQueryShopify'
     classpath = sourceSets.main.runtimeClasspath
         args "--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
@@ -42,7 +42,7 @@ task runTemplatePipelineDataToBigQueryShopify (type: JavaExec) {
 }
 
 task runTemplatePipelineDataToBigQueryNewStore (type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineDataToBigQueryNewStore'
+    main = 'org.datapipeline.TemplatePipelineDataToBigQueryNewStore'
     classpath = sourceSets.main.runtimeClasspath
     args "--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
@@ -57,7 +57,7 @@ task runTemplatePipelineDataToBigQueryNewStore (type: JavaExec) {
 }
 
 task runTemplatePipelineDataToBigQueryShipHawk (type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineDataToBigQueryShipHawk'
+    main = 'org.datapipeline.TemplatePipelineDataToBigQueryShipHawk'
     classpath = sourceSets.main.runtimeClasspath
     args "--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
@@ -72,7 +72,7 @@ task runTemplatePipelineDataToBigQueryShipHawk (type: JavaExec) {
 }
 
 task runTemplatePipelineOrderErrors (type: JavaExec) {
-    main = 'org.polleyg.TemplatePipelineOrderErrors'
+    main = 'org.datapipeline.TemplatePipelineOrderErrors'
     classpath = sourceSets.main.runtimeClasspath
     args "--project=dkt-us-data-lake-a1xq",
             "--runner=DirectRunner",
