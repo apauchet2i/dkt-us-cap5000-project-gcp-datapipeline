@@ -52,7 +52,7 @@ public class TemplatePipelineDataToBigQueryShopify {
 
          // ********************************************   ORDERS TABLE   ********************************************
         PCollection<TableRow> rowsOrders = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDERS", ParDo.of(new TransformJsonParDoOrders()));
-        PCollection<TableRow> rowsShipmentOrdersTest = rowsOrders.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
+        PCollection<TableRow> rowsShipmentOrdersTest = rowsOrders.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
         WriteResult writeResultOrders = rowsOrders
                 .apply("WRITE DATA IN BIGQUERY ORDERS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.orders", project,dataset))
@@ -66,7 +66,7 @@ public class TemplatePipelineDataToBigQueryShopify {
 
         // ********************************************   CUSTOMERS TABLE   ********************************************
         PCollection<TableRow> rowsCustomers = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new TransformJsonParDoCustomer()));
-        PCollection<TableRow> rowsShipmentCustomerTest = rowsCustomers.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
+        PCollection<TableRow> rowsShipmentCustomerTest = rowsCustomers.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
         WriteResult writeResultCustomers =rowsCustomers
                 .apply("WRITE DATA IN BIGQUERY CUSTOMERS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.customers", project,dataset))
@@ -80,7 +80,7 @@ public class TemplatePipelineDataToBigQueryShopify {
 
         // ********************************************   CUSTOMERS ERRORS   ********************************************
         PCollection<TableRow> rowsCustomersError = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new mapOrderCustomersError()));
-        PCollection<TableRow> rowsShipmentCustomersErrorsTest = rowsCustomersError.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
+        PCollection<TableRow> rowsShipmentCustomersErrorsTest = rowsCustomersError.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
         WriteResult writeResultCustomersErrors = rowsCustomersError
                 .apply("WRITE DATA IN BIGQUERY ERRORS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_errors", project,dataset))
@@ -95,7 +95,7 @@ public class TemplatePipelineDataToBigQueryShopify {
         // ********************************************   ORDER ITEMS TABLE   ********************************************
         PCollection<List<TableRow>> rowsOrderItemsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new TransformJsonParDoOrderItemsShopifyList()));
         PCollection<TableRow> rowsOrderItems = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new TransformJsonParDoOrderItemsShopify()));
-        PCollection<List<TableRow>> rowsShipmentOrderItemsTest = rowsOrderItemsList.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
+        PCollection<List<TableRow>> rowsShipmentOrderItemsTest = rowsOrderItemsList.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
         WriteResult writeResultOrderItems =rowsOrderItems
                 .apply("WRITE DATA IN BIGQUERY ORDER ITEMS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_items", project,dataset))
@@ -109,7 +109,7 @@ public class TemplatePipelineDataToBigQueryShopify {
 
         // ********************************************   ORDER SOURCES TABLE   ********************************************
         PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new TransformJsonParDoOrderSourcesShopify()));
-        PCollection<TableRow> rowsShipmentOrderSourcesTest = rowsOrderSources.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
+        PCollection<TableRow> rowsShipmentOrderSourcesTest = rowsOrderSources.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
         WriteResult writeResultOrderSources =rowsOrderSources
                 .apply("WRITE DATA IN BIGQUERY ORDER SOURCES TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_sources", project,dataset))
@@ -138,7 +138,7 @@ public class TemplatePipelineDataToBigQueryShopify {
 
         // ********************************************   ORDER STATUS PAYMENT ERROR    ********************************************
         PCollection<TableRow> rowsOrderStatusErrors = rowsOrderStatus.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new mapOrderStatusError()));
-        PCollection<TableRow> rowsOrderStatusErrorTest = rowsOrderStatus.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
+        PCollection<TableRow> rowsOrderStatusErrorTest = rowsOrderStatus.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
         WriteResult writeResultOrderStatusErrors =rowsOrderStatusErrors
                 .apply("WRITE DATA IN BIGQUERY ORDER ERRORS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_errors", project,dataset))
@@ -153,7 +153,7 @@ public class TemplatePipelineDataToBigQueryShopify {
         // ********************************************   ORDER SHIPMENTS TABLE   ********************************************
         PCollection<List<TableRow>> rowsOrderShipmentsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new TransformJsonParDoOrderShipmentsShopifyList()));
         PCollection<TableRow> rowsOrderShipments = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new TransformJsonParDoOrderShipmentsShopify()));
-        PCollection<List<TableRow>> rowsShipmentErrorTest = rowsOrderShipmentsList.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
+        PCollection<List<TableRow>> rowsShipmentErrorTest = rowsOrderShipmentsList.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
         WriteResult writeResultOrderShipments =rowsOrderShipments
                 .apply("WRITE DATA IN BIGQUERY ORDER SHIPMENTS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_shipments", project,dataset))
@@ -181,7 +181,7 @@ public class TemplatePipelineDataToBigQueryShopify {
         // ********************************************   SHIPMENT TRACKINGS TABLE   ********************************************
         PCollection<List<TableRow>> rowsShipmentTrackingsList = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW SHIPMENT TRACKINGS", ParDo.of(new TransformJsonParDoShipmentTrackingsShopifyList()));
         PCollection<TableRow> rowsShipmentTrackings = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW SHIPMENT TRACKINGS", ParDo.of(new TransformJsonParDoShipmentTrackingsShopify()));
-        PCollection<List<TableRow>> rowsShipmentTrackingsTest = rowsShipmentTrackingsList.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
+        PCollection<List<TableRow>> rowsShipmentTrackingsTest = rowsShipmentTrackingsList.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
         WriteResult writeResultShipmentTrackings =rowsShipmentTrackings
                 .apply("WRITE DATA IN BIGQUERY SHIPMENT TRACKINGS TABLE", BigQueryIO.writeTableRows()
                     .to(String.format("%s:%s.shipment_trackings", project,dataset))
@@ -195,7 +195,7 @@ public class TemplatePipelineDataToBigQueryShopify {
 
         // ********************************************   SHIPMENT TRACKINGS ERROR   ********************************************
         PCollection<TableRow> rowsShipmentTrackingsError = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ERRORS", ParDo.of(new mapShipmentTrackingErrorShopify()));
-        PCollection<TableRow> rowsShipmentTrackingsErrorTest = rowsShipmentTrackingsError.apply(Window.into(FixedWindows.of(Duration.standardSeconds(200))));
+        PCollection<TableRow> rowsShipmentTrackingsErrorTest = rowsShipmentTrackingsError.apply(Window.into(FixedWindows.of(Duration.standardSeconds(300))));
         WriteResult writeResultShipmentTrackingsError =rowsShipmentTrackingsError
                 .apply("WRITE DATA IN BIGQUERY ORDER ERRORS TABLE", BigQueryIO.writeTableRows()
                         .to(String.format("%s:%s.order_errors", project,dataset))
