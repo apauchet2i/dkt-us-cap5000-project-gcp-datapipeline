@@ -29,10 +29,10 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         String usernameSQL="cap5000";
         String passwordSQL="Mobilitech/20";
 
-        String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-        String appConfigPath = rootPath + "config.properties";
-        Properties sqlProps = new Properties();
-        sqlProps.load(new FileInputStream("/Users/AURORE/Desktop/gcp-batch-ingestion-bigquery-master/src/main/resources/config.properties"));
+//        String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+//        String appConfigPath = rootPath + "config.properties";
+//        Properties sqlProps = new Properties();
+//        sqlProps.load(new FileInputStream("/Users/AURORE/Desktop/gcp-batch-ingestion-bigquery-master/src/main/resources/config.properties"));
 
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
