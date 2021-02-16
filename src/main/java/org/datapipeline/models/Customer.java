@@ -62,7 +62,7 @@ public class Customer {
             System.out.println(customer.get("first_name"));
             if (customer.get("id") == null || customer.get("last_name") == null || customer.get("first_name") == null) {
                 Map<String, Object> mapCustomerError = new HashMap<>();
-                mapCustomerError.put("order_number", jsonObject.get("name"));
+                mapCustomerError.put("order_number", order.get("name"));
                 mapCustomerError.put("error_type", "missing_customer_info");
                 mapCustomerError.put("source", "shopify");
                 mapCustomerError.put("updated_at", DateNow.dateNow());
