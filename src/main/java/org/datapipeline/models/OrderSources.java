@@ -4,6 +4,7 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.datapipeline.utils.DateNow;
@@ -92,4 +93,37 @@ public class OrderSources {
         }
     }
 
+    public static class TransformJsonParDoOrderSourcesSap extends DoFn<String, TableRow> {
+
+        @ProcessElement
+        public void processElement(ProcessContext c) throws Exception {
+
+            List<TableRow> listTableRow = new ArrayList<>();
+            JSONParser parser = new JSONParser();
+
+            Object obj = parser.parse(c.element());
+            JSONObject jsonObject = (JSONObject) obj;
+
+            JSONArray statusArray = (JSONArray) jsonObject.get("status");
+
+            Map<Object, Object> mapShipmentOrder = new HashMap<>();
+
+
+            for (Object o : statusArray) {
+                JSONObject status = (JSONObject) o;
+                mapShipmentOrder.put("source", status.get("source"));
+                mapShipmentOrder.put("order_number", status.get("order_number"));
+                mapShipmentOrder.put("updated_at", DateNow.dateNow());
+            }
+
+            JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
+            TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
+            listTableRow.add(tableRowStatusFulfillment);
+
+            for (TableRow tableRow : listTableRow) {
+                c.output(tableRow);
+            }
+        }
+    }
 }
+

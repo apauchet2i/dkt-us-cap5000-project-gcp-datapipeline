@@ -111,17 +111,18 @@ public class OrderShipments {
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
 
-            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("status");
+            JSONArray statusArray = (JSONArray) jsonObject.get("status");
 
             Map<Object, Object> mapShipmentOrder = new HashMap<>();
-            mapShipmentOrder.put("source", jsonObject.get("source"));
-            mapShipmentOrder.put("order_number", jsonObject.get("order_number"));
-            mapShipmentOrder.put("updated_at", DateNow.dateNow());
 
-                for (Object o : fulfillmentArray) {
-                    JSONObject fulfillment = (JSONObject) o;
-                    mapShipmentOrder.put("id", fulfillment.get("name"));
-                    mapShipmentOrder.put("status", fulfillment.get("shipment_status"));
+
+                for (Object o : statusArray) {
+                    JSONObject status = (JSONObject) o;
+                    mapShipmentOrder.put("source", status.get("source"));
+                    mapShipmentOrder.put("order_number", status.get("order_number"));
+                    mapShipmentOrder.put("updated_at", DateNow.dateNow());
+                    mapShipmentOrder.put("id", status.get("id"));
+                    mapShipmentOrder.put("status", status.get("status"));
                 }
 
                 JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
