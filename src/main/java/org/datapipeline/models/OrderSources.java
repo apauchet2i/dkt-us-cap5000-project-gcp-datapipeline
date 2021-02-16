@@ -7,6 +7,8 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.datapipeline.utils.DateNow;
+
+import java.sql.PreparedStatement;
 import java.util.*;
 
 import static org.datapipeline.utils.JsonToTableRow.convertJsonToTableRow;
@@ -19,6 +21,12 @@ public class OrderSources {
         fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
         return new TableSchema().setFields(fields);
+    }
+
+    public static void setParametersOrderSourcesSQL(TableRow element, PreparedStatement preparedStatement) throws Exception {
+        preparedStatement.setString(1, element.get("order_number").toString());
+        preparedStatement.setString(2, element.get("source").toString());
+        preparedStatement.setString(3, element.get("updated_at").toString());
     }
 
     public static class TransformJsonParDoOrderSourcesShopify extends DoFn<String, TableRow> {

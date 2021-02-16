@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.datapipeline.utils.DateNow;
 
+import java.sql.PreparedStatement;
 import java.util.*;
 
 import static org.datapipeline.utils.JsonToTableRow.convertJsonToTableRow;
@@ -25,6 +26,16 @@ public class OrderItems {
         fields.add(new TableFieldSchema().setName("quantity").setType("INTEGER").setMode("NULLABLE"));
         fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
         return new TableSchema().setFields(fields);
+    }
+
+    public static void setParametersOrderItemsSQL(TableRow element, PreparedStatement preparedStatement) throws Exception {
+        preparedStatement.setString(1, element.get("id").toString());
+        preparedStatement.setString(2, element.get("shipment_id").toString());
+        preparedStatement.setString(3, element.get("source").toString());
+        preparedStatement.setString(4, element.get("name").toString());
+        preparedStatement.setString(5, element.get("price").toString());
+        preparedStatement.setString(6, element.get("quantity").toString());
+        preparedStatement.setString(7, element.get("updated_at").toString());
     }
 
     public static class TransformJsonParDoOrderItemsShopifyList extends DoFn<String, List<TableRow>> {

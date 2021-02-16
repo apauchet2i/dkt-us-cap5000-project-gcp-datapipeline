@@ -7,6 +7,8 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.datapipeline.utils.DateNow;
+
+import java.sql.PreparedStatement;
 import java.util.*;
 
 import static org.datapipeline.utils.JsonToTableRow.convertJsonToTableRow;
@@ -22,6 +24,14 @@ public class Customer {
         return new TableSchema().setFields(fields);
     }
 
+    public static void setParametersCustomers(TableRow element, PreparedStatement preparedStatement) throws Exception {
+        System.out.println(element.get("id"));
+        preparedStatement.setString(1, element.get("id").toString());
+        preparedStatement.setString(2, element.get("lastname").toString());
+        preparedStatement.setString(3, element.get("firstname").toString());
+        preparedStatement.setString(4, element.get("updated_at").toString());
+    }
+
     public static class TransformJsonParDoCustomer extends DoFn<String, TableRow> {
 
         @ProcessElement
@@ -32,6 +42,7 @@ public class Customer {
 
             JSONObject order = (JSONObject) jsonObject.get("order");
             JSONObject customer = (JSONObject) order.get("customer");
+            System.out.println(customer);
 
             Map<String, Object> mapCustomer = new HashMap<>();
             mapCustomer.put("id", String.valueOf(customer.get("id")));

@@ -7,6 +7,8 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.datapipeline.utils.DateNow;
+
+import java.sql.PreparedStatement;
 import java.util.*;
 
 import static org.datapipeline.utils.JsonToTableRow.convertJsonToTableRow;
@@ -25,6 +27,18 @@ public class Orders {
         fields.add(new TableFieldSchema().setName("created_at").setType("DATETIME").setMode("REQUIRED"));
         fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
         return new TableSchema().setFields(fields);
+    }
+
+    public static void setParametersOrdersSQL(TableRow element, PreparedStatement preparedStatement) throws Exception {
+        preparedStatement.setString(1, element.get("number").toString());
+        preparedStatement.setString(2, element.get("customer_id").toString());
+        preparedStatement.setString(3, element.get("street1").toString());
+        preparedStatement.setString(4, element.get("street2").toString());
+        preparedStatement.setString(5, element.get("zip_code").toString());
+        preparedStatement.setString(6, element.get("city").toString());
+        preparedStatement.setString(7, element.get("country").toString());
+        preparedStatement.setString(8, element.get("created_at").toString());
+        preparedStatement.setString(9, element.get("updated_at").toString());
     }
 
     public static class TransformJsonParDoOrders extends DoFn<String, TableRow> {

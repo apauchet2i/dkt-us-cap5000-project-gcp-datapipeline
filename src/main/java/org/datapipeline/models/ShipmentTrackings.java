@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.datapipeline.utils.DateNow;
 
+import java.sql.PreparedStatement;
 import java.util.*;
 
 import static org.datapipeline.utils.JsonToTableRow.convertJsonToTableRow;
@@ -23,6 +24,14 @@ public class ShipmentTrackings {
         fields.add(new TableFieldSchema().setName("tracking_link").setType("STRING").setMode("NULLABLE"));
         fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
         return new TableSchema().setFields(fields);
+    }
+
+    public static void setParametersShipmentTrackingsSQL(TableRow element, PreparedStatement preparedStatement) throws Exception {
+        preparedStatement.setString(1, element.get("shipment_id").toString());
+        preparedStatement.setString(2, element.get("source").toString());
+        preparedStatement.setString(3, element.get("tracking_id").toString());
+        preparedStatement.setString(4, element.get("tracking_link").toString());
+        preparedStatement.setString(5, element.get("updated_at").toString());
     }
 
     public static class TransformJsonParDoShipmentTrackingsShopifyList extends DoFn<String, List<TableRow>> {

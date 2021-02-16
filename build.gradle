@@ -23,68 +23,23 @@ dependencies {
     compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
     compile "com.google.cloud:google-cloud-bigquery"
     compile group: 'org.apache.beam', name: 'beam-sdks-java-extensions-json-jackson', version: '2.4.0'
+    compile group: 'org.apache.beam', name: 'beam-sdks-java-io-jdbc', version: '2.2.0'
+    compile("mysql:mysql-connector-java:5.1.34")
 
 }
 
-task runTemplatePipelineDataToBigQueryShopify (type: JavaExec) {
-    main = 'org.datapipeline.TemplatePipelineDataToBigQueryShopify'
-    classpath = sourceSets.main.runtimeClasspath
-        args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
-            "--enableStreamingEngine=true",
-            "--maxNumWorkers=5",
-            "--numWorkers=3",
-            "--region=us-central1",
-            "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/shopify",
-            "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/shopify",
-            "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShopify",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
-}
 
-task runTemplatePipelineDataToBigQueryNewStore (type: JavaExec) {
-    main = 'org.datapipeline.TemplatePipelineDataToBigQueryNewStore'
+task runTemplatePipelineDataToBigQueryShopifySQL (type: JavaExec) {
+    main = 'org.datapipeline.TemplatePipelineDataToBigQueryShopifySQL'
     classpath = sourceSets.main.runtimeClasspath
     args "--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
-            "--enableStreamingEngine=true",
-            "--maxNumWorkers=5",
-            "--numWorkers=3",
-            "--region=us-central1",
-            "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/newstore",
-            "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/newstore",
-            "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryNewStore",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
-}
-
-task runTemplatePipelineDataToBigQueryShipHawk (type: JavaExec) {
-    main = 'org.datapipeline.TemplatePipelineDataToBigQueryShipHawk'
-    classpath = sourceSets.main.runtimeClasspath
-    args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
-            "--enableStreamingEngine=true",
-            "--maxNumWorkers=5",
-            "--numWorkers=3",
-            "--region=us-central1",
-            "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/shiphawk",
-            "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/shiphawk",
-            "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShipHawk",
-            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
-}
-
-task runTemplatePipelineOrderErrors (type: JavaExec) {
-    main = 'org.datapipeline.TemplatePipelineOrderErrors'
-    classpath = sourceSets.main.runtimeClasspath
-    args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DirectRunner",
             "--maxNumWorkers=5",
             "--tempLocation=gs://deploy-project-cap5000/temp",
             "--numWorkers=1",
             "--region=us-central1",
             "--stagingLocation=gs://deploy-project-cap5000/staging",
-            "--templateLocation=gs://deploy-project-cap5000/template/pipelineOrderErrors",
+            "--templateLocation=gs://deploy-project-cap5000/template/TemplatePipelineDataToBigQueryShopifySQL",
             '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
             '--usePublicIps=false'
 }
