@@ -87,7 +87,6 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
           });
         });
       }
-
       else if(fileName.indexOf('shiphawk/') !== -1){
         google.auth.getDefaultProjectId(function (err, projectId) {
           if (err || !projectId) {
@@ -106,7 +105,7 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
                 zone: "us-central1-f"
               },
               jobName: 'pipelineDataToBigQueryShiphawk' + new Date().getTime(),
-              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShiphawk'
+              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShipHawk'
             }
           }, function (err, response) {
             if (err) {
