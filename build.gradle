@@ -29,6 +29,7 @@ dependencies {
     compile group: 'org.apache.beam', name: 'beam-sdks-java-io-jdbc', version: '2.3.0'
     compile group: 'c3p0', name: 'c3p0', version: '0.9.0.4'
     compile group: 'com.mchange', name: 'mchange-commons-java', version: '0.2.11'
+    compile group: 'com.zaxxer', name: 'HikariCP', version: '3.1.0'
 
 }
 
