@@ -101,6 +101,39 @@ public class OrderShipments {
             }
         }
     }
+    public static class TransformJsonParDoOrderShipmentsSap extends DoFn<String, TableRow> {
+
+        @ProcessElement
+        public void mapJsonToBigqueryTable(ProcessContext c) throws Exception {
+            List<TableRow> listTableRow = new ArrayList<>();
+            JSONParser parser = new JSONParser();
+
+            Object obj = parser.parse(c.element());
+            JSONObject jsonObject = (JSONObject) obj;
+
+            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("status");
+
+            Map<Object, Object> mapShipmentOrder = new HashMap<>();
+            mapShipmentOrder.put("source", jsonObject.get("source"));
+            mapShipmentOrder.put("order_number", jsonObject.get("order_number"));
+            mapShipmentOrder.put("updated_at", DateNow.dateNow());
+
+                for (Object o : fulfillmentArray) {
+                    JSONObject fulfillment = (JSONObject) o;
+                    mapShipmentOrder.put("id", fulfillment.get("name"));
+                    mapShipmentOrder.put("status", fulfillment.get("shipment_status"));
+                }
+
+                JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
+                TableRow tableRowStatusFulfillment = convertJsonToTableRow(String.valueOf(mapShipmentOrderToBigQuery));
+                listTableRow.add(tableRowStatusFulfillment);
+
+                for (TableRow tableRow : listTableRow) {
+                    c.output(tableRow);
+                }
+            }
+        }
+
     public static class TransformJsonParDoOrderShipmentsNewStore extends DoFn<String, TableRow> {
 
         @ProcessElement

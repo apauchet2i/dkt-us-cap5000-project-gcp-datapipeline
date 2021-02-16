@@ -48,7 +48,7 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
                 zone: "us-central1-f"
               },
               jobName: 'pipelineDataToBigQueryShopify' + new Date().getTime(),
-              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShopify'
+              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/TemplatePipelineDataToBigQueryShopifySQL'
             }
           }, function (err, response) {
             if (err) {
@@ -116,6 +116,35 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
         });
       }
       });
+
+    if (fileName.indexOf('sap/') !== -1) {
+      google.auth.getDefaultProjectId(function (err, projectId) {
+        if (err || !projectId) {
+          console.error(`Problems getting projectId (${projectId}). Err was: `, err);
+          throw err;
+        }
+        const dataflow = google.dataflow({version: 'v1b3', auth: authClient});
+        dataflow.projects.templates.create({
+          projectId: projectId,
+          resource: {
+            parameters: {
+              inputFile: `gs://${file.bucket}/${fileName}`
+            },
+            environment: {
+              tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/sap",
+              zone: "us-central1-f"
+            },
+            jobName: 'pipelineDataToBigQuerySap' + new Date().getTime(),
+            gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQuerySap'
+          }
+        }, function (err, response) {
+          if (err) {
+            console.error("Problem running dataflow template, error was: ", err);
+          }
+          console.log("Dataflow template response: ", response);
+        });
+      });
+    }
   } else {
     console.log("Nothing to do here, ignoring.");
   }

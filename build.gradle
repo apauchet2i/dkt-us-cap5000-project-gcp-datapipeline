@@ -25,7 +25,6 @@ dependencies {
     compile group: 'org.apache.beam', name: 'beam-sdks-java-extensions-json-jackson', version: '2.4.0'
     compile group: 'org.apache.beam', name: 'beam-sdks-java-io-jdbc', version: '2.2.0'
     compile("mysql:mysql-connector-java:5.1.34")
-
 }
 
 
