@@ -71,8 +71,9 @@ public class OrderItems {
             JSONParser parser = new JSONParser();
             Object obj = parser.parse(c.element());
             JSONObject jsonObject = (JSONObject) obj;
+            JSONObject order = (JSONObject) jsonObject.get("order");
 
-            JSONArray fulfillmentArray = (JSONArray) jsonObject.get("fulfillments");
+            JSONArray fulfillmentArray = (JSONArray) order.get("fulfillments");
 
             if (fulfillmentArray != null && fulfillmentArray.size() > 0 ) {
 
