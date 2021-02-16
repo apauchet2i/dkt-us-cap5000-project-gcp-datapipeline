@@ -31,9 +31,9 @@ task runTemplatePipelineDataToBigQueryShopify (type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
         args "--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
-            //"--runner=DirectRunner",
+            "--enableStreamingEngine=true",
             "--maxNumWorkers=5",
-            "--numWorkers=1",
+            "--numWorkers=3",
             "--region=us-central1",
             "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/shopify",
             "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/shopify",
@@ -47,8 +47,9 @@ task runTemplatePipelineDataToBigQueryNewStore (type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     args "--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
+            "--enableStreamingEngine=true",
             "--maxNumWorkers=5",
-            "--numWorkers=1",
+            "--numWorkers=3",
             "--region=us-central1",
             "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/newstore",
             "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/newstore",
@@ -62,8 +63,9 @@ task runTemplatePipelineDataToBigQueryShipHawk (type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     args "--project=dkt-us-data-lake-a1xq",
             "--runner=DataflowRunner",
+            "--enableStreamingEngine=true",
             "--maxNumWorkers=5",
-            "--numWorkers=1",
+            "--numWorkers=3",
             "--region=us-central1",
             "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/shiphawk",
             "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/shiphawk",
