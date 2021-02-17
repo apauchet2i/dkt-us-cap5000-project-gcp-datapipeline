@@ -30,30 +30,13 @@ import static org.datapipeline.models.OrderStatus.setParametersOrderStatusSQL;
 public class TemplatePipelineDataToBigQueryShopifySQL {
     public static void main(String[] args) throws IOException, PropertyVetoException, SQLException {
 
-        String urlMySQLDb="jdbc:mysql://34.94.48.203:3306/cap5000";
         String usernameSQL="cap5000";
         String passwordSQL="Mobilitech/20";
-        String jdbcUrl = "jdbc:mysql://google/cap5000?cloudSqlInstance=dkt-us-data-lake-a1xq:us-west2:mulesoftdbinstance-staging&socketFactory=com.google.cloud.sql.mysql.SocketFactory&user=cap5000&password=" + passwordSQL + "&useUnicode=true&characterEncoding=UTF-8"; ;
-
-//        String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-//        String appConfigPath = rootPath + "config.properties";
-//        Properties sqlProps = new Properties();
-//        sqlProps.load(new FileInputStream("/Users/AURORE/Desktop/gcp-batch-ingestion-bigquery-master/src/main/resources/config.properties"));
+        String jdbcUrl = "jdbc:mysql://google/cap5000?cloudSqlInstance=dkt-us-data-lake-a1xq:us-west2:mulesoftdbinstance-staging&socketFactory=com.google.cloud.sql.mysql.SocketFactory&user=cap5000&password=" + passwordSQL + "&useUnicode=true&characterEncoding=UTF-8";
 
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
-
-        ComboPooledDataSource dataSource = new ComboPooledDataSource();
-
-        dataSource.setDriverClass("com.mysql.jdbc.Driver");
-        dataSource.setJdbcUrl("jdbc:mysql:///google/cap5000?cloudSqlInstance=dkt-us-data-lake-a1xq:us-west2:mulesoftdbinstance-staging&socketFactory=com.google.cloud.sql.mysql.SocketFactory");
-        dataSource.setUser("cap5000");
-        dataSource.setPassword("Mobilitech/20");
-
-        JdbcIO.DataSourceConfiguration config = JdbcIO.DataSourceConfiguration.create(dataSource);
-
-        java.sql.Connection connection = DriverManager.getConnection(jdbcUrl, usernameSQL, passwordSQL);
 
         PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
         //To test datapipeline in local environment

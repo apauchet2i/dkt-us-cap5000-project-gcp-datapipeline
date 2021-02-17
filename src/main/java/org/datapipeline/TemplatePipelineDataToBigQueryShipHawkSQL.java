@@ -20,27 +20,25 @@ import org.apache.beam.sdk.values.PCollection;
 import org.datapipeline.models.OrderItems;
 import org.datapipeline.models.OrderShipments;
 import org.datapipeline.models.OrderSources;
-import org.datapipeline.models.OrderStatus;
+import org.datapipeline.models.ShipmentTrackings;
 
 import java.beans.PropertyVetoException;
 import java.sql.PreparedStatement;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
 import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
 import static org.datapipeline.models.OrderErrors.getTableSchemaOrderErrors;
 import static org.datapipeline.models.OrderErrors.setParametersOrderErrorsSQL;
-import static org.datapipeline.models.OrderItems.getTableSchemaOrderItems;
-import static org.datapipeline.models.OrderItems.setParametersOrderItemsSQL;
-import static org.datapipeline.models.OrderShipments.getTableSchemaOrderShipments;
-import static org.datapipeline.models.OrderShipments.setParametersOrderShipmentsSQL;
-import static org.datapipeline.models.OrderSources.getTableSchemaOrderSources;
-import static org.datapipeline.models.OrderSources.setParametersOrderSourcesSQL;
-import static org.datapipeline.models.OrderStatus.getTableSchemaOrderStatus;
-import static org.datapipeline.models.OrderStatus.setParametersOrderStatusSQL;
+import static org.datapipeline.models.OrderItems.*;
+import static org.datapipeline.models.OrderShipments.*;
+import static org.datapipeline.models.OrderSources.*;
+import static org.datapipeline.models.ShipmentTrackings.TransformJsonParDoShipmentTrackingsShipHawk;
+import static org.datapipeline.models.ShipmentTrackings.getTableSchemaShipmentTrackings;
 
-public class TemplatePipelineDataToBigQueryNewStoreSQL {
+public class TemplatePipelineDataToBigQueryShipHawkSQL {
     public static void main(String[] args) throws PropertyVetoException {
 
         String usernameSQL="cap5000";
@@ -51,55 +49,10 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
 
-        ComboPooledDataSource dataSource = new ComboPooledDataSource();
-        dataSource.setDriverClass("com.mysql.jdbc.Driver");
-        dataSource.setJdbcUrl("jdbc:mysql:///google/cap5000?cloudSqlInstance=dkt-us-data-lake-a1xq:us-west2:mulesoftdbinstance-staging&socketFactory=com.google.cloud.sql.mysql.SocketFactory");
-        dataSource.setUser("cap5000");
-        dataSource.setPassword("Mobilitech/20");
-
         PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
-        //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/upload/missing_customer_info.json"));
-        //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/webhookNewStoreOrder-07_02_2021_19_14_55.json"));
-
-
-        // ********************************************   ORDER STATUS TABLE   ********************************************
-        PCollection<TableRow> rowsOrderStatus = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new OrderStatus.TransformJsonParDoOrderStatusNewStore()));
-        rowsOrderStatus.apply(JdbcIO.<TableRow>write()
-                .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
-                .withStatement("insert into order_status (order_number,source,type,status,updated_at) values(?,?,?,?,?) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " type = VALUES(type),\n" +
-                        " status= VALUES(status),\n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
-                .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
-                    @Override
-                    public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
-                        setParametersOrderStatusSQL(element, preparedStatement);
-                    }
-                })
-        );
-
-        // ********************************************   ORDER STATUS PAYMENT ERROR    ********************************************
-        PCollection<TableRow> rowsOrderStatusErrors = rowsOrderStatus.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new OrderStatus.mapOrderStatusErrorNewStore()));
-        rowsOrderStatusErrors.apply(JdbcIO.<TableRow>write()
-                .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
-                .withStatement("insert into order_sources (order_number,source,updated_at) values(?,?,?) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
-                .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
-                    @Override
-                    public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
-                        setParametersOrderErrorsSQL(element, preparedStatement);
-                    }
-                })
-        );
 
         // ********************************************   ORDER SHIPMENTS TABLE   ********************************************
-        PCollection<TableRow> rowsOrderShipments = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new OrderShipments.TransformJsonParDoOrderShipmentsNewStore()));
+        PCollection<TableRow> rowsOrderShipments= pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new TransformJsonParDoOrderShipmentsShiphawk()));
         rowsOrderShipments.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl))
@@ -119,7 +72,7 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
         );
 
         // ********************************************   ORDER SHIPMENTS ERROR    ********************************************
-        PCollection<TableRow> rowsOrderShipmentsErrors = rowsOrderShipments.apply("TRANSFORM JSON TO TABLE ROW ERROR", ParDo.of(new OrderShipments.mapOrderShipmentsErrorNewStore()));
+        PCollection<TableRow> rowsOrderShipmentsErrors = rowsOrderShipments.apply("TRANSFORM JSON TO TABLE ROW ERROR", ParDo.of(new mapOrderShipmentsErrorShipHawk()));
         rowsOrderShipmentsErrors.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl))
@@ -132,8 +85,25 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
                 })
         );
 
+        // ********************************************   ORDER ITEMS TABLE   ********************************************
+        PCollection<TableRow> rowsOrderItems = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new TransformJsonParDoOrderItemsShiphawk()));
+        rowsOrderItems.apply(JdbcIO.<TableRow>write()
+                .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
+                        "com.mysql.jdbc.Driver", jdbcUrl))
+                .withStatement("insert into order_items (id,shipment_id,source,name,price,quantity,updated_at) values(?,?,?,?,?,?,?) " +
+                        "ON DUPLICATE KEY UPDATE \n" +
+                        " updated_at = VALUES(updated_at)")
+                .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
+
+                    @Override
+                    public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
+                        setParametersOrderItemsSQL(element, preparedStatement);
+                    }
+                })
+        );
+
         // ********************************************   ORDER SOURCES TABLE   ********************************************
-        PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new OrderSources.TransformJsonParDoOrderSourcesNewStore()));
+        PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new TransformJsonParDoOrderSourcesShipHawk()));
         rowsOrderSources.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl))
@@ -150,19 +120,25 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
                 })
         );
 
-        // ********************************************   ORDER ITEMS TABLE   ********************************************
-        PCollection<TableRow> rowsOrderItems = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new OrderItems.TransformJsonParDoOrderItemsNewStore()));
-        rowsOrderItems.apply(JdbcIO.<TableRow>write()
+        // ********************************************   SHIPMENT TRACKINGS TABLE   ********************************************
+        PCollection<TableRow> rowsShipmentTrackings = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW SHIPMENT TRACKINGS", ParDo.of(new TransformJsonParDoShipmentTrackingsShipHawk()));
+        rowsShipmentTrackings.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl))
-                .withStatement("insert into order_items (id,shipment_id,source,name,price,quantity,updated_at) values(?,?,?,?,?,?,?) " +
+                .withStatement("insert into order_shipments (shipment_id,source,tracking_id,tracking_link,updated_at) values(?,?,?,?,?) ON DUPLICATE KEY UPDATE \n" +
+                        " tracking_id = VALUES(tracking_id),\n" +
+                        " tracking_link = VALUES(tracking_link),\n" +
+                        " updated_at = VALUES(updated_at) " +
+                        "ON DUPLICATE KEY UPDATE \n" +
+                        " order_number= VALUES(order_number),\n" +
+                        " status= VALUES(status),\n" +
+                        " updated_at = VALUES(updated_at) " +
                         "ON DUPLICATE KEY UPDATE \n" +
                         " updated_at = VALUES(updated_at)")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
-
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
-                        setParametersOrderItemsSQL(element, preparedStatement);
+                        setParametersOrderErrorsSQL(element, preparedStatement);
                     }
                 })
         );
@@ -171,30 +147,16 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
     }
 
 
-
     public interface TemplateOptions extends DataflowPipelineOptions {
         @Description("GCS path of the file to read from")
         ValueProvider<String> getInputFile();
         void setInputFile(ValueProvider<String> value);
     }
 
-    public static class CountMessage extends DoFn<TableRow, PubsubMessage>{
-        private String messageDone;
-        private String table;
-
-        public CountMessage(String messageDone, String table) {
-            this.messageDone = messageDone;
-            this.table = table;
-
-        }
+    public static class TransformRowToInteger extends DoFn<TableRow, Integer> {
         @ProcessElement
         public void processElement(ProcessContext c) {
-            Map<String, String> attributes = new HashMap<>();
-            attributes.put("table", table);
-            PubsubMessage message = new PubsubMessage(messageDone.getBytes(), attributes);
-            c.output(message);
+            c.output(1);
         }
     }
-
-
 }
