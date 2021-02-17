@@ -28,6 +28,7 @@ public class TemplatePipelineDataToBigQuerySapSQL {
         String urlMySQLDb="jdbc:mysql://34.94.48.203:3306/cap5000";
         String usernameSQL="cap5000";
         String passwordSQL="Mobilitech/20";
+        String jdbcUrl="jdbc:mysql://51.91.122.200:3306/cap5000&user=" + usernameSQL + "&password=" + passwordSQL;
 
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
@@ -41,9 +42,7 @@ public class TemplatePipelineDataToBigQuerySapSQL {
         PCollection<TableRow> rowsOrderShipments = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new OrderShipments.TransformJsonParDoOrderShipmentsShopify()));
         rowsOrderShipments.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", urlMySQLDb)
-                        .withUsername(usernameSQL)
-                        .withPassword(passwordSQL))
+                        "com.mysql.jdbc.Driver", jdbcUrl))
                 .withStatement("insert into order_shipments (id,source,order_number,status,updated_at) values(?,?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
                         " order_number= VALUES(order_number),\n" +
@@ -63,9 +62,7 @@ public class TemplatePipelineDataToBigQuerySapSQL {
         PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new OrderSources.TransformJsonParDoOrderSourcesShopify()));
         rowsOrderSources.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", urlMySQLDb)
-                        .withUsername(usernameSQL)
-                        .withPassword(passwordSQL))
+                        "com.mysql.jdbc.Driver", jdbcUrl))
                 .withStatement("insert into order_sources (order_number,source,updated_at) values(?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
                         " updated_at = VALUES(updated_at) " +
