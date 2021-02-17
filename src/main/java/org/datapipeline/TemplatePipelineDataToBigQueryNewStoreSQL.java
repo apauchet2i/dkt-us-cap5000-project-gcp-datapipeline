@@ -5,9 +5,6 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
-import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
-import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.jdbc.JdbcIO;
 import org.apache.beam.sdk.options.Description;
@@ -15,7 +12,6 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.Wait;
 import org.apache.beam.sdk.values.PCollection;
 import org.datapipeline.models.OrderItems;
 import org.datapipeline.models.OrderShipments;
@@ -27,17 +23,10 @@ import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
-import static org.datapipeline.models.OrderErrors.getTableSchemaOrderErrors;
 import static org.datapipeline.models.OrderErrors.setParametersOrderErrorsSQL;
-import static org.datapipeline.models.OrderItems.getTableSchemaOrderItems;
 import static org.datapipeline.models.OrderItems.setParametersOrderItemsSQL;
-import static org.datapipeline.models.OrderShipments.getTableSchemaOrderShipments;
 import static org.datapipeline.models.OrderShipments.setParametersOrderShipmentsSQL;
-import static org.datapipeline.models.OrderSources.getTableSchemaOrderSources;
 import static org.datapipeline.models.OrderSources.setParametersOrderSourcesSQL;
-import static org.datapipeline.models.OrderStatus.getTableSchemaOrderStatus;
 import static org.datapipeline.models.OrderStatus.setParametersOrderStatusSQL;
 
 public class TemplatePipelineDataToBigQueryNewStoreSQL {

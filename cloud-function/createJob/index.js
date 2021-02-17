@@ -1,6 +1,6 @@
 const google = require('googleapis');
 
-exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
+exports.dktUsCap5000ProjectDatapipelinejobSQL = function(file, context) {
 
   console.log(`  Event: ${context.eventId}`);
   console.log(`  Event Type: ${context.eventType}`);
@@ -47,7 +47,7 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
                 tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/shopify",
                 zone: "us-central1-f"
               },
-              jobName: 'pipelineDataToBigQueryShopify' + new Date().getTime(),
+              jobName: 'pipelineDataToBigQueryShopifySQL' + new Date().getTime(),
               gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/TemplatePipelineDataToBigQueryShopifySQL'
             }
           }, function (err, response) {
@@ -76,8 +76,8 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
                 tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/newstore",
                 zone: "us-central1-f"
               },
-              jobName: 'pipelineDataToBigQueryNewstore' + new Date().getTime(),
-              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryNewStore'
+              jobName: 'pipelineDataToBigQueryNewstoreSQL' + new Date().getTime(),
+              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryNewStoreSQL'
             }
           }, function (err, response) {
             if (err) {
@@ -104,8 +104,8 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
                 tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/shiphawk",
                 zone: "us-central1-f"
               },
-              jobName: 'pipelineDataToBigQueryShiphawk' + new Date().getTime(),
-              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShipHawk'
+              jobName: 'pipelineDataToBigQueryShiphawkSQL' + new Date().getTime(),
+              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShipHawkSQL'
             }
           }, function (err, response) {
             if (err) {
@@ -134,8 +134,8 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
               tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/sap",
               zone: "us-central1-f"
             },
-            jobName: 'pipelineDataToBigQuerySap' + new Date().getTime(),
-            gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQuerySap'
+            jobName: 'pipelineDataToBigQuerySapSQL' + new Date().getTime(),
+            gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQuerySapSQL'
           }
         }, function (err, response) {
           if (err) {

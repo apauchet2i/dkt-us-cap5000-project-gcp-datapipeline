@@ -48,3 +48,49 @@ task runTemplatePipelineDataToBigQueryShopifySQL (type: JavaExec) {
             '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
             '--usePublicIps=false'
 }
+
+task runTemplatePipelineDataToBigQueryNewStoreSQL (type: JavaExec) {
+    main = 'org.datapipeline.TemplatePipelineDataToBigQueryNewStoreSQL'
+    classpath = sourceSets.main.runtimeClasspath
+    args "--project=dkt-us-data-lake-a1xq",
+            "--runner=DataflowRunner",
+            "--maxNumWorkers=5",
+            "--numWorkers=1",
+            "--region=us-central1",
+            "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/newstore",
+            "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/newstore",
+            "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryNewStoreSQL",
+            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
+            '--usePublicIps=false'
+}
+
+task runTemplatePipelineDataToBigQueryShipHawkSQL (type: JavaExec) {
+    main = 'org.datapipeline.TemplatePipelineDataToBigQueryShipHawkSQL'
+    classpath = sourceSets.main.runtimeClasspath
+    args "--project=dkt-us-data-lake-a1xq",
+            "--runner=DataflowRunner",
+            "--maxNumWorkers=5",
+            "--numWorkers=1",
+            "--region=us-central1",
+            "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/shiphawk",
+            "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/shiphawk",
+            "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShipHawkSQL",
+            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
+            '--usePublicIps=false'
+}
+
+task runTemplatePipelineDataToBigQuerySapSQL (type: JavaExec) {
+    main = 'org.datapipeline.TemplatePipelineDataToBigQuerySapSQL'
+    classpath = sourceSets.main.runtimeClasspath
+    args "--project=dkt-us-data-lake-a1xq",
+            "--runner=DataflowRunner",
+            "--maxNumWorkers=5",
+            "--numWorkers=1",
+            "--region=us-central1",
+            "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/sap",
+            "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/sap",
+            "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQuerySapSQL",
+            '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
+            '--usePublicIps=false'
+}
+

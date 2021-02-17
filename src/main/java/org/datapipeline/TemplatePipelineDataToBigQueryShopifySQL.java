@@ -1,34 +1,31 @@
 package org.datapipeline;
 
 import com.google.api.services.bigquery.model.TableRow;
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import org.apache.beam.sdk.io.jdbc.JdbcIO;
-import org.apache.beam.sdk.transforms.*;
-import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
+import org.apache.beam.sdk.io.jdbc.JdbcIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
+import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.values.PCollection;
 import org.datapipeline.models.*;
-import org.datapipeline.models.Orders.*;
+import org.datapipeline.models.Orders.TransformJsonParDoOrders;
 
 import java.beans.PropertyVetoException;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.*;
+
 import static org.datapipeline.models.OrderErrors.setParametersOrderErrorsSQL;
 import static org.datapipeline.models.OrderItems.setParametersOrderItemsSQL;
 import static org.datapipeline.models.OrderShipments.setParametersOrderShipmentsSQL;
 import static org.datapipeline.models.OrderSources.setParametersOrderSourcesSQL;
 import static org.datapipeline.models.OrderStatus.setParametersOrderStatusSQL;
+import static org.datapipeline.models.ShipmentTrackings.setParametersShipmentTrackingsSQL;
 
 public class TemplatePipelineDataToBigQueryShopifySQL {
-    public static void main(String[] args) throws IOException, PropertyVetoException, SQLException {
+    public static void main(String[] args) throws PropertyVetoException, SQLException {
 
         String usernameSQL="cap5000";
         String passwordSQL="Mobilitech/20";
@@ -222,7 +219,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
-                        setParametersOrderErrorsSQL(element, preparedStatement);
+                        setParametersShipmentTrackingsSQL(element, preparedStatement);
                     }
                 })
         );

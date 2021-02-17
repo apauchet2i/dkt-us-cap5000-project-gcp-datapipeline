@@ -4,9 +4,6 @@ import com.google.api.services.bigquery.model.TableRow;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.TextIO;
-import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
-import org.apache.beam.sdk.io.gcp.bigquery.WriteResult;
-import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.io.jdbc.JdbcIO;
 import org.apache.beam.sdk.options.Description;
@@ -14,28 +11,18 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.Wait;
 import org.apache.beam.sdk.values.PCollection;
-import org.datapipeline.models.OrderItems;
 import org.datapipeline.models.OrderShipments;
 import org.datapipeline.models.OrderSources;
-import org.datapipeline.models.OrderStatus;
 
 import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition.CREATE_IF_NEEDED;
-import static org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition.WRITE_APPEND;
-import static org.datapipeline.models.OrderErrors.getTableSchemaOrderErrors;
-import static org.datapipeline.models.OrderItems.getTableSchemaOrderItems;
-import static org.datapipeline.models.OrderShipments.getTableSchemaOrderShipments;
 import static org.datapipeline.models.OrderShipments.setParametersOrderShipmentsSQL;
-import static org.datapipeline.models.OrderSources.getTableSchemaOrderSources;
 import static org.datapipeline.models.OrderSources.setParametersOrderSourcesSQL;
-import static org.datapipeline.models.OrderStatus.getTableSchemaOrderStatus;
 
-public class TemplatePipelineDataToBigQuerySap {
+public class TemplatePipelineDataToBigQuerySapSQL {
     public static void main(String[] args) {
 
         String urlMySQLDb="jdbc:mysql://34.94.48.203:3306/cap5000";

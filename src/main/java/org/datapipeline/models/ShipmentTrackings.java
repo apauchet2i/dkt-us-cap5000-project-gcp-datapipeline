@@ -16,16 +16,6 @@ import static org.datapipeline.utils.JsonToTableRow.convertJsonToTableRow;
 
 public class ShipmentTrackings {
 
-    public static TableSchema getTableSchemaShipmentTrackings() {
-        List<TableFieldSchema> fields = new ArrayList<>();
-        fields.add(new TableFieldSchema().setName("shipment_id").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("source").setType("STRING").setMode("REQUIRED"));
-        fields.add(new TableFieldSchema().setName("tracking_id").setType("STRING").setMode("NULLABLE"));
-        fields.add(new TableFieldSchema().setName("tracking_link").setType("STRING").setMode("NULLABLE"));
-        fields.add(new TableFieldSchema().setName("updated_at").setType("DATETIME").setMode("REQUIRED"));
-        return new TableSchema().setFields(fields);
-    }
-
     public static void setParametersShipmentTrackingsSQL(TableRow element, PreparedStatement preparedStatement) throws Exception {
         preparedStatement.setString(1, element.get("shipment_id").toString());
         preparedStatement.setString(2, element.get("source").toString());
