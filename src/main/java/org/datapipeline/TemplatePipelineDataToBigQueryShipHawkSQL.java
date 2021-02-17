@@ -28,7 +28,7 @@ public class TemplatePipelineDataToBigQueryShipHawkSQL {
 
         String usernameSQL="cap5000";
         String passwordSQL="Mobilitech/20";
-        String jdbcUrl="jdbc:mysql://51.91.122.200:3306/cap5000&user=" + usernameSQL + "&password=" + passwordSQL;
+        String jdbcUrl="jdbc:mysql://51.91.122.200:3306/cap5000?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC";
         //String jdbcUrl = "jdbc:mysql://google/cap5000?cloudSqlInstance=dkt-us-data-lake-a1xq:us-west2:mulesoftdbinstance-staging&socketFactory=com.google.cloud.sql.mysql.SocketFactory&user=cap5000&password=" + passwordSQL + "&useUnicode=true&characterEncoding=UTF-8";
 
         PipelineOptionsFactory.register(TemplateOptions.class);
@@ -46,9 +46,7 @@ public class TemplatePipelineDataToBigQueryShipHawkSQL {
                         "ON DUPLICATE KEY UPDATE \n" +
                         " order_number= VALUES(order_number),\n" +
                         " status= VALUES(status),\n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
+                        " updated_at = VALUES(updated_at) ")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
@@ -78,7 +76,10 @@ public class TemplatePipelineDataToBigQueryShipHawkSQL {
                         "com.mysql.jdbc.Driver", jdbcUrl))
                 .withStatement("insert into order_items (id,shipment_id,source,name,price,quantity,updated_at) values(?,?,?,?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
+                        " name= VALUES(name),\n" +
+                        " price= VALUES(price),\n" +
+                        " quantity = VALUES(quantity),\n" +
+                        " updated_at = VALUES(updated_at)" )
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
 
                     @Override
@@ -95,9 +96,7 @@ public class TemplatePipelineDataToBigQueryShipHawkSQL {
                         "com.mysql.jdbc.Driver", jdbcUrl))
                 .withStatement("insert into order_sources (order_number,source,updated_at) values(?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
+                        " updated_at = VALUES(updated_at) ")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {

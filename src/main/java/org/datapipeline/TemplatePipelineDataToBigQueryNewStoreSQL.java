@@ -34,18 +34,12 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
 
         String usernameSQL="cap5000";
         String passwordSQL="Mobilitech/20";
-        String jdbcUrl="jdbc:mysql://51.91.122.200:3306/cap5000&user=" + usernameSQL + "&password=" + passwordSQL;
+        String jdbcUrl="jdbc:mysql://51.91.122.200:3306/cap5000?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC";
         //String jdbcUrl = "jdbc:mysql://google/cap5000?cloudSqlInstance=dkt-us-data-lake-a1xq:us-west2:mulesoftdbinstance-staging&socketFactory=com.google.cloud.sql.mysql.SocketFactory&user=cap5000&password=" + passwordSQL + "&useUnicode=true&characterEncoding=UTF-8";
 
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
-
-        ComboPooledDataSource dataSource = new ComboPooledDataSource();
-        dataSource.setDriverClass("com.mysql.jdbc.Driver");
-        dataSource.setJdbcUrl("jdbc:mysql:///google/cap5000?cloudSqlInstance=dkt-us-data-lake-a1xq:us-west2:mulesoftdbinstance-staging&socketFactory=com.google.cloud.sql.mysql.SocketFactory");
-        dataSource.setUser("cap5000");
-        dataSource.setPassword("Mobilitech/20");
 
         PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
         //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-ldp-baptiste-test/upload/missing_customer_info.json"));
@@ -61,9 +55,7 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
                         "ON DUPLICATE KEY UPDATE \n" +
                         " type = VALUES(type),\n" +
                         " status= VALUES(status),\n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
+                        " updated_at = VALUES(updated_at) ")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
@@ -77,7 +69,7 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
         rowsOrderStatusErrors.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl))
-                .withStatement("insert into order_sources (order_number,source,updated_at) values(?,?,?) " +
+                .withStatement("insert into order_errors (order_number,error_type,updated_at,source) values(?,?,?,?)" +
                         "ON DUPLICATE KEY UPDATE \n" +
                         " updated_at = VALUES(updated_at)")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
@@ -97,9 +89,7 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
                         "ON DUPLICATE KEY UPDATE \n" +
                         " order_number= VALUES(order_number),\n" +
                         " status= VALUES(status),\n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
+                        " updated_at = VALUES(updated_at) ")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
@@ -129,9 +119,7 @@ public class TemplatePipelineDataToBigQueryNewStoreSQL {
                         "com.mysql.jdbc.Driver", jdbcUrl))
                 .withStatement("insert into order_sources (order_number,source,updated_at) values(?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
+                        " updated_at = VALUES(updated_at) ")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
