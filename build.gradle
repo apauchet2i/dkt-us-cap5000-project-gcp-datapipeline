@@ -38,7 +38,7 @@ task runTemplatePipelineDataToBigQueryShopifySQL (type: JavaExec) {
     main = 'org.datapipeline.TemplatePipelineDataToBigQueryShopifySQL'
     classpath = sourceSets.main.runtimeClasspath
     args "--project=dkt-us-data-lake-a1xq",
-            "--runner=DataflowRunner",
+            "--runner=DataflowsRunner",
             "--maxNumWorkers=5",
             "--tempLocation=gs://dkt-us-cap5000-project-deploy/temp/shopify",
             "--numWorkers=1",
@@ -46,7 +46,7 @@ task runTemplatePipelineDataToBigQueryShopifySQL (type: JavaExec) {
             "--stagingLocation=gs://dkt-us-cap5000-project-deploy/staging/shopify",
             "--templateLocation=gs://dkt-us-cap5000-project-deploy/template/TemplatePipelineDataToBigQueryShopifySQL",
             '--subnetwork=https://www.googleapis.com/compute/v1/projects/dkt-us-data-lake-a1xq/regions/us-central1/subnetworks/data-fusion-network',
-            '--usePublicIps=false'
+            '--usePublicIps=true'
 }
 
 task runTemplatePipelineDataToBigQueryNewStoreSQL (type: JavaExec) {
