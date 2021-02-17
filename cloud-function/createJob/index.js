@@ -1,6 +1,6 @@
 const google = require('googleapis');
 
-exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
+exports.dktUsCap5000ProjectDatapipelinejobPreprod = function(file, context) {
 
   console.log(`  Event: ${context.eventId}`);
   console.log(`  Event Type: ${context.eventType}`);
@@ -47,7 +47,7 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
                 tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/shopify",
                 zone: "us-central1-f"
               },
-              jobName: 'pipelineDataToBigQueryShopify' + new Date().getTime(),
+              jobName: 'pipelineDataToBigQueryShopifyPreprod' + new Date().getTime(),
               gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShopify'
             }
           }, function (err, response) {
@@ -76,7 +76,7 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
                 tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/newstore",
                 zone: "us-central1-f"
               },
-              jobName: 'pipelineDataToBigQueryNewstore' + new Date().getTime(),
+              jobName: 'pipelineDataToBigQueryNewstorePrepord' + new Date().getTime(),
               gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryNewStore'
             }
           }, function (err, response) {
@@ -104,7 +104,7 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
                 tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/shiphawk",
                 zone: "us-central1-f"
               },
-              jobName: 'pipelineDataToBigQueryShiphawk' + new Date().getTime(),
+              jobName: 'pipelineDataToBigQueryShiphawkPreprod' + new Date().getTime(),
               gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQueryShipHawk'
             }
           }, function (err, response) {
@@ -115,6 +115,35 @@ exports.dktUsCap5000ProjectDatapipelinejob = function(file, context) {
           });
         });
       }
+      else if(fileName.indexOf('sap/') !== -1){
+        google.auth.getDefaultProjectId(function (err, projectId) {
+          if (err || !projectId) {
+            console.error(`Problems getting projectId (${projectId}). Err was: `, err);
+            throw err;
+          }
+          const dataflow = google.dataflow({version: 'v1b3', auth: authClient});
+          dataflow.projects.templates.create({
+            projectId: projectId,
+            resource: {
+              parameters: {
+                inputFile: `gs://${file.bucket}/${fileName}`
+              },
+              environment: {
+                tempLocation: "gs://dkt-us-cap5000-project-deploy/temp/shiphawk",
+                zone: "us-central1-f"
+              },
+              jobName: 'pipelineDataToBigQuerySapPreprod' + new Date().getTime(),
+              gcsPath: 'gs://dkt-us-cap5000-project-deploy/template/pipelineDataToBigQuerySap'
+            }
+          }, function (err, response) {
+            if (err) {
+              console.error("Problem running dataflow template, error was: ", err);
+            }
+            console.log("Dataflow template response: ", response);
+          });
+        });
+      }
+
       });
   } else {
     console.log("Nothing to do here, ignoring.");
