@@ -29,22 +29,24 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
 
         String usernameSQL="cap5000";
         String passwordSQL="Mobilitech/20";
-        String jdbcUrl="jdbc:mysql://51.91.122.200:3306/cap5000&user=" + usernameSQL + "&password=" + passwordSQL;
+        String jdbcUrl="jdbc:mysql://51.91.122.200:3306/cap5000?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC";
         //String jdbcUrl = "jdbc:mysql://google/cap5000?cloudSqlInstance=dkt-us-data-lake-a1xq:us-west2:mulesoftdbinstance-staging&socketFactory=com.google.cloud.sql.mysql.SocketFactory&user=cap5000&password=" + passwordSQL + "&useUnicode=true&characterEncoding=UTF-8";
 
         PipelineOptionsFactory.register(TemplateOptions.class);
         TemplateOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().as(TemplateOptions.class);
         Pipeline pipeline = Pipeline.create(options);
 
-        PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
+        //PCollection<String> pCollectionDataJson = pipeline.apply("READ DATA IN JSON FILE", TextIO.read().from(options.getInputFile()));
         //To test datapipeline in local environment
-        //PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-cap5000-project-platform-newevent/shopify/2021-02-16-18-01-07__newevent_shopify.json"));
+        PCollection<String> pCollectionDataJson = pipeline.apply("READ", TextIO.read().from("gs://dkt-us-cap5000-project-platform-newevent/shopify/2021-02-16-18-01-07__newevent_shopify.json"));
 
          // ********************************************   ORDERS TABLE   ********************************************
         PCollection<TableRow> rowsOrders = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDERS", ParDo.of(new TransformJsonParDoOrders()));
         rowsOrders.apply(JdbcIO.<TableRow>write()
                         .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                                "com.mysql.jdbc.Driver", jdbcUrl))
+                                "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
                                 .withStatement("insert into orders (number,customer_id,street1,street2,zip_code,city,country,created_at,updated_at) values(?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE " +
                                         " customer_id = VALUES(customer_id)," +
                                         " street1= VALUES(street1)," +
@@ -66,7 +68,9 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsCustomers = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new Customer.TransformJsonParDoCustomer()));
         rowsCustomers.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
                 .withStatement("insert into customers (id,lastname,firstname,updated_at) values(?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE" +
                         " lastname = VALUES(lastname)," +
@@ -85,7 +89,9 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsCustomersError = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new Customer.mapOrderCustomersError()));
         rowsCustomersError.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
                 .withStatement("insert into order_errors (order_number,error_type,updated_at,source) values(?,?,?,?)")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
 
@@ -100,10 +106,15 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsOrderItems = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER ITEMS", ParDo.of(new OrderItems.TransformJsonParDoOrderItemsShopify()));
         rowsOrderItems.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
                         .withStatement("insert into order_items (id,shipment_id,source,name,price,quantity,updated_at) values(?,?,?,?,?,?,?) " +
                                 "ON DUPLICATE KEY UPDATE \n" +
-                                " updated_at = VALUES(updated_at)")
+                                " name= VALUES(name),\n" +
+                                " price= VALUES(price),\n" +
+                                " quantity = VALUES(quantity),\n" +
+                                " updated_at = VALUES(updated_at)" )
                         .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
 
                             @Override
@@ -117,12 +128,12 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsOrderSources = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SOURCES", ParDo.of(new OrderSources.TransformJsonParDoOrderSourcesShopify()));
         rowsOrderSources.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
                         .withStatement("insert into order_sources (order_number,source,updated_at) values(?,?,?) " +
                                 "ON DUPLICATE KEY UPDATE \n" +
-                                " updated_at = VALUES(updated_at) " +
-                                "ON DUPLICATE KEY UPDATE \n" +
-                                " updated_at = VALUES(updated_at)")
+                                " updated_at = VALUES(updated_at) ")
                         .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                             @Override
                             public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
@@ -135,14 +146,14 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsOrderStatus = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER STATUS", ParDo.of(new OrderStatus.TransformJsonParDoOrderStatusShopify()));
         rowsOrderStatus.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
                 .withStatement("insert into order_status (order_number,source,type,status,updated_at) values(?,?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
                         " type = VALUES(type),\n" +
                         " status= VALUES(status),\n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
+                        " updated_at = VALUES(updated_at) ")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
@@ -155,7 +166,9 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsOrderStatusErrors = rowsOrderStatus.apply("TRANSFORM JSON TO TABLE ROW CUSTOMERS", ParDo.of(new OrderStatus.mapOrderStatusError()));
         rowsOrderStatusErrors.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
                         .withStatement("insert into order_sources (order_number,source,updated_at) values(?,?,?) " +
                                 "ON DUPLICATE KEY UPDATE \n" +
                                 " updated_at = VALUES(updated_at)")
@@ -171,17 +184,18 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsOrderShipments = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ORDER SHIPMENTS", ParDo.of(new OrderShipments.TransformJsonParDoOrderShipmentsShopify()));
         rowsOrderShipments.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
                 .withStatement("insert into order_shipments (id,source,order_number,status,updated_at) values(?,?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
                         " order_number= VALUES(order_number),\n" +
                         " status= VALUES(status),\n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
+                        " updated_at = VALUES(updated_at) ")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
+                        System.out.println(element);
                         setParametersOrderShipmentsSQL(element, preparedStatement);
                     }
                 })
@@ -191,8 +205,12 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsOrderShipmentsErrors = rowsOrderShipments.apply("TRANSFORM JSON TO TABLE ROW ERROR", ParDo.of(new OrderShipments.mapOrderShipmentsError()));
         rowsOrderShipmentsErrors.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
-                .withStatement("insert into order_errors (order_number,error_type,updated_at,source) values(?,?,?,?) ON DUPLICATE KEY UPDATE updated_at = VALUES(updated_at)")
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
+                .withStatement("insert into order_errors (order_number,error_type,updated_at,source) values(?,?,?,?) " +
+                        "ON DUPLICATE KEY UPDATE " +
+                        "updated_at = VALUES(updated_at)")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
@@ -206,17 +224,14 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsShipmentTrackings = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW SHIPMENT TRACKINGS", ParDo.of(new ShipmentTrackings.TransformJsonParDoShipmentTrackingsShopify()));
         rowsShipmentTrackings.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
-                .withStatement("insert into order_shipments (shipment_id,source,tracking_id,tracking_link,updated_at) values(?,?,?,?,?) ON DUPLICATE KEY UPDATE \n" +
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL))
+                .withStatement("insert into shipment_trackings (shipment_id,source,tracking_id,tracking_link,updated_at) values(?,?,?,?,?) " +
+                        "ON DUPLICATE KEY UPDATE \n" +
                         " tracking_id = VALUES(tracking_id),\n" +
                         " tracking_link = VALUES(tracking_link),\n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " order_number= VALUES(order_number),\n" +
-                        " status= VALUES(status),\n" +
-                        " updated_at = VALUES(updated_at) " +
-                        "ON DUPLICATE KEY UPDATE \n" +
-                        " updated_at = VALUES(updated_at)")
+                        " updated_at = VALUES(updated_at) ")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {
@@ -229,8 +244,13 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         PCollection<TableRow> rowsShipmentTrackingsError = pCollectionDataJson.apply("TRANSFORM JSON TO TABLE ROW ERRORS", ParDo.of(new ShipmentTrackings.mapShipmentTrackingErrorShopify()));
         rowsShipmentTrackingsError.apply(JdbcIO.<TableRow>write()
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
-                        "com.mysql.jdbc.Driver", jdbcUrl))
-                .withStatement("insert into order_errors (order_number,error_type,updated_at,source) values(?,?,?,?) ON DUPLICATE KEY UPDATE updated_at = VALUES(updated_at)")
+                        "com.mysql.jdbc.Driver", jdbcUrl)
+                        .withUsername(usernameSQL)
+                        .withPassword(passwordSQL)
+                )
+                .withStatement("insert into order_errors (order_number,error_type,updated_at,source) values(?,?,?,?) " +
+                        "ON DUPLICATE KEY UPDATE " +
+                        "updated_at = VALUES(updated_at)")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
                     @Override
                     public void setParameters(TableRow element, PreparedStatement preparedStatement) throws Exception {

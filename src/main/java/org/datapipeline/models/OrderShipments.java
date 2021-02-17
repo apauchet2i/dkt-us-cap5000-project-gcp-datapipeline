@@ -88,7 +88,11 @@ public class OrderShipments {
                 for (Object o : fulfillmentArray) {
                     JSONObject fulfillment = (JSONObject) o;
                     mapShipmentOrder.put("id", fulfillment.get("name"));
-                    mapShipmentOrder.put("status", fulfillment.get("shipment_status"));
+                    if(fulfillment.get("shipment_status") == null ) {
+                        mapShipmentOrder.put("status", "null");
+                    }else {
+                        mapShipmentOrder.put("status", fulfillment.get("shipment_status"));
+                    }
                 }
 
                 JSONObject mapShipmentOrderToBigQuery = new JSONObject(mapShipmentOrder);
