@@ -53,7 +53,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                         .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                                 "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
 
                                 .withStatement("insert into orders (number,customer_id,street1,street2,zip_code,city,country,created_at,updated_at) values(?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE " +
                                         " customer_id = VALUES(customer_id)," +
@@ -78,7 +78,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
                 .withStatement("insert into customers (id,lastname,firstname,updated_at) values(?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE" +
                         " lastname = VALUES(lastname)," +
@@ -99,7 +99,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
                 .withStatement("insert into order_errors (order_number,error_type,updated_at,source) values(?,?,?,?)")
                 .withPreparedStatementSetter(new JdbcIO.PreparedStatementSetter<TableRow>() {
 
@@ -116,7 +116,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
                         .withStatement("insert into order_items (id,shipment_id,source,name,price,quantity,updated_at) values(?,?,?,?,?,?,?) " +
                                 "ON DUPLICATE KEY UPDATE \n" +
                                 " name= VALUES(name),\n" +
@@ -138,7 +138,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
                         .withStatement("insert into order_sources (order_number,source,updated_at) values(?,?,?) " +
                                 "ON DUPLICATE KEY UPDATE \n" +
                                 " updated_at = VALUES(updated_at) ")
@@ -156,7 +156,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
                 .withStatement("insert into order_status (order_number,source,type,status,updated_at) values(?,?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
                         " type = VALUES(type),\n" +
@@ -176,7 +176,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
                         .withStatement("insert into order_sources (order_number,source,updated_at) values(?,?,?) " +
                                 "ON DUPLICATE KEY UPDATE \n" +
                                 " updated_at = VALUES(updated_at)")
@@ -194,7 +194,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
                 .withStatement("insert into order_shipments (id,source,order_number,status,updated_at) values(?,?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
                         " order_number= VALUES(order_number),\n" +
@@ -215,7 +215,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
                 .withStatement("insert into order_errors (order_number,error_type,updated_at,source) values(?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE " +
                         "updated_at = VALUES(updated_at)")
@@ -234,7 +234,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL)))
+                        .withPassword(passwordSQL))
                 .withStatement("insert into shipment_trackings (shipment_id,source,tracking_id,tracking_link,updated_at) values(?,?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE \n" +
                         " tracking_id = VALUES(tracking_id),\n" +
@@ -254,7 +254,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                 .withDataSourceConfiguration(JdbcIO.DataSourceConfiguration.create(
                         "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
-                        .withPassword(Arrays.toString(hashPasswordSQL))
+                        .withPassword(passwordSQL)
                 )
                 .withStatement("insert into order_errors (order_number,error_type,updated_at,source) values(?,?,?,?) " +
                         "ON DUPLICATE KEY UPDATE " +
