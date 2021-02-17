@@ -8,6 +8,7 @@ import org.apache.beam.sdk.io.jdbc.JdbcIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
+import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.values.PCollection;
 import org.datapipeline.models.*;
@@ -17,8 +18,7 @@ import java.beans.PropertyVetoException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Arrays;
 
 import static org.datapipeline.models.OrderErrors.setParametersOrderErrorsSQL;
@@ -275,5 +275,4 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         ValueProvider<String> getInputFile();
         void setInputFile(ValueProvider<String> value);
     }
-
 }
