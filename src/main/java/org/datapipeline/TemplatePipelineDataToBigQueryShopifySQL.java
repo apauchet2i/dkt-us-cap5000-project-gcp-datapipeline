@@ -36,7 +36,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hashPasswordSQL = digest.digest(passwordSQL.getBytes(StandardCharsets.UTF_8));
 
-        String jdbcUrl="jdbc:mysql://51.91.122.200:3306/cap5000?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC";
+        String jdbcUrl="jdbc:mysql://51.91.122.200:3306/cap5000?useLegacyDatetimeCode=false&serverTimezone=UTC";
         //String jdbcUrl = "jdbc:mysql://google/cap5000?cloudSqlInstance=dkt-us-data-lake-a1xq:us-west2:mulesoftdbinstance-staging&socketFactory=com.google.cloud.sql.mysql.SocketFactory&user=cap5000&password=" + passwordSQL + "&useUnicode=true&characterEncoding=UTF-8";
 
         PipelineOptionsFactory.register(TemplateOptions.class);
@@ -54,6 +54,7 @@ public class TemplatePipelineDataToBigQueryShopifySQL {
                                 "com.mysql.jdbc.Driver", jdbcUrl)
                         .withUsername(usernameSQL)
                         .withPassword(Arrays.toString(hashPasswordSQL)))
+
                                 .withStatement("insert into orders (number,customer_id,street1,street2,zip_code,city,country,created_at,updated_at) values(?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE " +
                                         " customer_id = VALUES(customer_id)," +
                                         " street1= VALUES(street1)," +
